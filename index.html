@@ -6,11 +6,11 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Pure-Web)
+         * Khanh Melody Single-File Standalone Web App (Pure-Web Ultra Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 90px; }
         #km-app-container { display: flex; flex-direction: column; min-height: 100vh; }
 
         /* TOPBAR */
@@ -26,7 +26,7 @@
         .km-btn-danger { color: #ff5252; }
 
         /* MAIN LAYOUT */
-        .km-main-layout { display: flex; flex: 1; padding-bottom: 75px; }
+        .km-main-layout { display: flex; flex: 1; }
 
         /* SIDEBAR */
         .km-sidebar { width: 240px; background: #000000; padding: 20px 12px; border-right: 1px solid rgba(255, 255, 255, 0.1); }
@@ -60,18 +60,18 @@
         .km-textarea { height: 90px; resize: vertical; }
         .km-save-btn { width: 100%; background: #ffd700; color: #0d47a1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-        /* BOTTOM PLAYER */
-        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #000000; border-top: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5); z-index: 100; }
-        .km-player-progress-bar { height: 4px; background: #ffd700; width: 0%; }
-        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; }
-        .km-player-left { display: flex; align-items: center; gap: 12px; }
-        .km-player-avatar { width: 38px; height: 38px; background: #1565c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .km-player-title { font-size: 14px; font-weight: bold; }
-        .km-player-artist { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
-        .km-player-right { display: flex; align-items: center; gap: 10px; }
-        .km-icon-btn { background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .km-play-icon-btn { background: #ffd700; color: #0b192c; width: 44px; height: 44px; font-size: 18px; }
-        .km-close-icon-btn { color: #ff5252; }
+        /* BOTTOM PLAYER - ULTRA PROMINENT & FIXED */
+        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; height: 85px; display: flex; flex-direction: column; }
+        .km-player-progress-bar { height: 5px; background: #ffd700; width: 0%; }
+        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; flex: 1; }
+        .km-player-left { display: flex; align-items: center; gap: 14px; }
+        .km-player-avatar { width: 46px; height: 46px; background: #ffd700; color: #0b192c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+        .km-player-title { font-size: 16px; font-weight: bold; color: #ffffff; }
+        .km-player-artist { font-size: 13px; color: #ffd700; }
+        .km-player-right { display: flex; align-items: center; gap: 12px; }
+        .km-icon-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #ffffff; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .km-play-icon-btn { background: #ffd700; color: #0b192c; width: 50px; height: 50px; font-size: 22px; font-weight: bold; }
+        .km-close-icon-btn { background: rgba(255, 82, 82, 0.3); color: #ffffff; }
 
         /* MODAL */
         .km-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); display: none; align-items: center; justify-content: center; z-index: 200; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -126,7 +126,7 @@
             </main>
         </div>
 
-        <!-- BOTTOM PLAYER -->
+        <!-- BOTTOM PLAYER - ALWAYS VISIBLE -->
         <footer class="km-bottom-player" id="km-bottom-player">
             <div class="km-player-progress-bar" id="km-player-progress-bar"></div>
             <div class="km-player-inner">
@@ -196,7 +196,7 @@
             "use strict";
 
             var state = {
-                selectedTab: 1,
+                selectedTab: 1, // Default to Trang Chủ
                 isAdmin: false,
                 searchQuery: "",
                 selectedGenre: "Tất cả",
@@ -260,7 +260,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs');
+                var saved = localStorage.getItem('km_songs_v2');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
@@ -310,7 +310,7 @@
                         html = renderMainSongList("🎧 List nhạc của tôi (" + myLiked.length + ")", myLiked);
                         break;
                     case 7:
-                        html = renderMainSongList("💿 Nhóm CD nhạc (" + state.songs.length + ")", state.songs);
+                        html = renderMainSongList("💿 Danh sách tất cả bài hát & CD", state.songs);
                         break;
                     case 4:
                         if (state.isAdmin) html = renderUploadView();
@@ -337,7 +337,7 @@
                 bindViewEvents();
             }
 
-            // FLAT SONG LIST RENDERER (Direct horizontal rows, no nested folders)
+            // FLAT SONG LIST RENDERER - EVERY SONG AS A DIRECT HORIZONTAL ROW
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -502,7 +502,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v2', JSON.stringify(state.songs));
                         renderActiveView();
                     }
                 });
@@ -590,7 +590,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v2', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa bài hát khỏi web thành công!");
@@ -626,7 +626,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_v2', JSON.stringify(state.songs));
                     alert("Đã lưu thành công " + lines.length + " bài hát thành các hàng ngang trực tiếp!");
                     state.selectedTab = 1;
                     renderSidebar();
@@ -663,5 +663,3 @@
     </script>
 </body>
 </html>
-
-
