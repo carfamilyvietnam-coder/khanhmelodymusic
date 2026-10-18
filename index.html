@@ -261,7 +261,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v5');
+                var saved = localStorage.getItem('km_songs_v6');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
@@ -559,7 +559,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -676,7 +676,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -697,9 +697,17 @@
                         return;
                     }
 
-                    var lines = urls.split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
-                    lines.forEach(function (url, i) {
-                        var songTitle = lines.length > 1 ? (title || "Bài hát CD") + " (" + (i + 1) + ")" : (title || "Bài hát mới");
+                    var urlRegex = /(https?:\/\/[^\s;,]+)/gi;
+                    var foundUrls = urls.match(urlRegex) || [];
+
+                    if (foundUrls.length === 0) {
+                        alert("Không tìm thấy đường dẫn Google Drive (https://...) hợp lệ. Vui lòng kiểm tra lại!");
+                        return;
+                    }
+
+                    foundUrls.forEach(function (url, i) {
+                        var cleanUrl = url.trim();
+                        var songTitle = foundUrls.length > 1 ? (title || "Bài hát CD") + " (" + (i + 1) + ")" : (title || "Bài hát mới");
                         state.songs.unshift({
                             id: "s_" + Date.now() + "_" + i,
                             title: songTitle,
@@ -708,16 +716,15 @@
                             genre: "Acoustic",
                             category: "Danh sách bài hát hiện hành",
                             cdName: title || "Nhóm CD",
-                            driveUrl: url,
+                            driveUrl: cleanUrl,
                             likeCount: 1,
                             isLiked: true
                         });
                     });
 
-                    localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
-                    alert("Đã lưu thành công " + lines.length + " bài hát thuộc CD '" + (title || "CD mới") + "' thành các hàng ngang trực tiếp để phát nhạc!");
-                    state.selectedTab = 7;
-                    state.selectedCdName = title || "CD mới";
+                    localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
+                    alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
+                    state.selectedTab = 1;
                     renderSidebar();
                     renderActiveView();
                 },
