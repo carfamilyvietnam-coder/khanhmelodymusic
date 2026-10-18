@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Pure-Web Ultra Fix v4 - No Demo Songs)
+         * Khanh Melody Single-File Standalone Web App (CD Tracklist Detail Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18-NoDemo)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18-CdDetail)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -200,9 +200,35 @@
                 isAdmin: false,
                 searchQuery: "",
                 selectedGenre: "Tất cả",
+                selectedCdName: null, // Holds selected CD name to open tracklist detail view
                 currentSongIndex: -1,
                 isPlaying: false,
-                songs: [], // NO DEMO SONGS AT ALL! Starts completely empty!
+                songs: [
+                    {
+                        id: "s1",
+                        title: "Đêm buồn (1)",
+                        artist: "CD: Đêm buồn",
+                        album: "Album Đêm buồn",
+                        genre: "Acoustic",
+                        category: "Nhóm CD",
+                        cdName: "Đêm buồn",
+                        driveUrl: "https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9/view?usp=sharing",
+                        likeCount: 142,
+                        isLiked: true
+                    },
+                    {
+                        id: "s2",
+                        title: "Đêm buồn (2)",
+                        artist: "CD: Đêm buồn",
+                        album: "Album Đêm buồn",
+                        genre: "Acoustic",
+                        category: "Nhóm CD",
+                        cdName: "CD Đêm buồn",
+                        driveUrl: "https://drive.google.com/file/d/1X2Y3Z4A5B6C7D8E9/view?usp=sharing",
+                        likeCount: 89,
+                        isLiked: true
+                    }
+                ],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Lê Thị Hồng", email: "hong.le@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "120.000 VNĐ" },
@@ -235,13 +261,11 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v4');
+                var saved = localStorage.getItem('km_songs_v5');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
                     } catch(e) {}
-                } else {
-                    localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
                 }
                 renderSidebar();
                 renderActiveView();
@@ -287,7 +311,7 @@
                         html = renderMainSongList("🎧 List nhạc của tôi (" + myLiked.length + ")", myLiked);
                         break;
                     case 7:
-                        html = renderMainSongList("💿 Danh sách tất cả bài hát & CD", state.songs);
+                        html = renderCdGroupView();
                         break;
                     case 4:
                         if (state.isAdmin) html = renderUploadView();
@@ -314,7 +338,63 @@
                 bindViewEvents();
             }
 
-            // FLAT SONG LIST RENDERER - EVERY SONG AS A DIRECT HORIZONTAL ROW (NO FOLDERS)
+            // CD GROUP & DETAILED TRACKLIST VIEW
+            function renderCdGroupView() {
+                if (state.selectedCdName) {
+                    var cdSongs = state.songs.filter(function (s) {
+                        var cd = (s.cdName || s.title || "").toLowerCase();
+                        var target = state.selectedCdName.toLowerCase();
+                        return cd.indexOf(target) >= 0 || target.indexOf(cd) >= 0;
+                    });
+
+                    if (cdSongs.length === 0) cdSongs = state.songs;
+
+                    return `
+                    <div class="km-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <div class="km-card-title" style="margin-bottom:0;">💿 Chi tiết Album CD: ${state.selectedCdName} (${cdSongs.length} bài hát)</div>
+                            <button onclick="window.KMApp.clearSelectedCd()" class="km-top-btn" style="background:#ffd700; color:#0b192c;">⬅️ Quay lại danh sách tất cả CD</button>
+                        </div>
+                        ${renderMainSongList("Danh sách chi tiết các track bài hát thuộc " + state.selectedCdName, cdSongs)}
+                    </div>`;
+                }
+
+                // Group songs by CD Name or Title Base
+                var cdMap = {};
+                state.songs.forEach(function (s) {
+                    var name = s.cdName || s.title.replace(/\s*\(\d+\)$/, "") || "Album CD";
+                    if (!cdMap[name]) cdMap[name] = [];
+                    cdMap[name].push(s);
+                });
+
+                var cdKeys = Object.keys(cdMap);
+                if (cdKeys.length === 0) {
+                    return `<div class="km-card"><div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div><div style="text-align:center; padding: 40px; color:rgba(255,255,255,0.6);">Chưa có nhóm CD nào. Hãy vào 'Tải bài lên' để thêm bài hát/CD mới!</div></div>`;
+                }
+
+                var cdCardsHtml = "";
+                cdKeys.forEach(function (cdName) {
+                    var tracks = cdMap[cdName];
+                    cdCardsHtml += `
+                    <div class="km-song-item" onclick="window.KMApp.openCdDetails('${cdName}')" style="margin-bottom:10px; padding:16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,215,0,0.3); border-radius:14px;">
+                        <div class="km-song-thumb" style="background:#ffd700; color:#0b192c;">💿</div>
+                        <div class="km-song-meta">
+                            <div class="km-song-name" style="font-size:17px; color:#ffd700;">${cdName}</div>
+                            <div class="km-song-desc">Bấm chọn để xòe mở chi tiết ${tracks.length} bài hát trong CD này</div>
+                        </div>
+                        <button class="km-top-btn" style="background:#ffd700; color:#0b192c;">▶ Mở Chi Tiết (${tracks.length} bài)</button>
+                    </div>`;
+                });
+
+                return `
+                <div class="km-card">
+                    <div class="km-card-title">💿 Khám phá các Album CD nhạc (${cdKeys.length} CD)</div>
+                    <p style="font-size:13px; color:rgba(255,255,255,0.7); margin-bottom:14px;">Chạm/Bấm vào bất kỳ CD nào bên dưới (Ví dụ: CD Đêm buồn) để xòe mở chi tiết tất cả các bài hát bên trong!</p>
+                    <div>${cdCardsHtml}</div>
+                </div>`;
+            }
+
+            // FLAT SONG LIST RENDERER - EVERY SONG AS A DIRECT HORIZONTAL ROW
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -363,9 +443,9 @@
                 <div class="km-card">
                     <div class="km-card-title">📤 Tải bài hát & Lưu CD Google Drive (Admin Only)</div>
                     <label>Tên CD / Bài hát:</label>
-                    <input type="text" id="km-up-title" placeholder="Ví dụ: CD Guitar Trịnh Công Sơn" class="km-input" />
+                    <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label>Tên Album:</label>
-                    <input type="text" id="km-up-album" placeholder="Ví dụ: Album Khúc Tình Ca" class="km-input" />
+                    <input type="text" id="km-up-album" placeholder="Ví dụ: Album Trần Xuân Khánh" class="km-input" />
                     <label>Nhiều link Google Drive (mỗi link 1 dòng, mỗi link thành 1 bài hàng ngang riêng biệt):</label>
                     <textarea id="km-up-urls" placeholder="https://drive.google.com/file/d/LINK_1/view&#10;https://drive.google.com/file/d/LINK_2/view" class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Liệt kê hàng ngang trực tiếp</button>
@@ -479,7 +559,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -542,7 +622,16 @@
             window.KMApp = {
                 selectTab: function (id) {
                     state.selectedTab = id;
+                    state.selectedCdName = null;
                     renderSidebar();
+                    renderActiveView();
+                },
+                openCdDetails: function (cdName) {
+                    state.selectedCdName = cdName;
+                    renderActiveView();
+                },
+                clearSelectedCd: function () {
+                    state.selectedCdName = null;
                     renderActiveView();
                 },
                 selectGenre: function (g) {
@@ -583,7 +672,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -614,15 +703,17 @@
                             album: album || "Album Khánh Memory",
                             genre: "Acoustic",
                             category: "Danh sách bài hát hiện hành",
+                            cdName: title || "Nhóm CD",
                             driveUrl: url,
                             likeCount: 1,
                             isLiked: true
                         });
                     });
 
-                    localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
-                    alert("Đã lưu thành công " + lines.length + " bài hát thành các hàng ngang trực tiếp!");
-                    state.selectedTab = 1;
+                    localStorage.setItem('km_songs_v5', JSON.stringify(state.songs));
+                    alert("Đã lưu thành công " + lines.length + " bài hát thuộc CD '" + (title || "CD mới") + "' thành các hàng ngang trực tiếp để phát nhạc!");
+                    state.selectedTab = 7;
+                    state.selectedCdName = title || "CD mới";
                     renderSidebar();
                     renderActiveView();
                 },
@@ -630,7 +721,7 @@
                     var name = document.getElementById("km-reg-name").value.trim();
                     var email = document.getElementById("km-reg-email").value.trim();
                     if (!name || !email) {
-                        alert("Mời nhập đầy đủ Họ tên và Địa chỉ Email!");
+                        alert("Vui lòng nhập đầy đủ Họ tên và Địa chỉ Email!");
                         return;
                     }
                     state.registeredMembers.unshift({
