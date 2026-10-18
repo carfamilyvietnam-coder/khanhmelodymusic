@@ -516,6 +516,38 @@
                     alert("⚡ Tự động duyệt SMS thành công! Đã cập nhật Ví Admin khanhbare@gmail.com (+50.000 VNĐ).");
                     document.getElementById("km-vietqr-modal").style.display = "none";
                 });
+
+                // BOTTOM PLAYER CONTROLS
+                document.getElementById("km-player-play-btn").addEventListener("click", function () {
+                    if (state.isPlaying) {
+                        audio.pause();
+                        state.isPlaying = false;
+                        this.innerText = "▶";
+                    } else {
+                        if (state.currentSongIndex >= 0 && state.songs[state.currentSongIndex]) {
+                            audio.play();
+                            state.isPlaying = true;
+                            this.innerText = "⏸";
+                        } else if (state.songs.length > 0) {
+                            window.KMApp.playSong(0);
+                        }
+                    }
+                });
+
+                document.getElementById("km-player-next-btn").addEventListener("click", function () {
+                    if (state.songs.length === 0) return;
+                    var nextIdx = (state.currentSongIndex + 1) % state.songs.length;
+                    window.KMApp.playSong(nextIdx);
+                });
+
+                document.getElementById("km-player-close-btn").addEventListener("click", function () {
+                    audio.pause();
+                    state.isPlaying = false;
+                    state.currentSongIndex = -1;
+                    document.getElementById("km-player-title").innerText = "Chưa chọn bài hát";
+                    document.getElementById("km-player-artist").innerText = "Khánh Memory";
+                    document.getElementById("km-player-play-btn").innerText = "▶";
+                });
             }
 
             function bindViewEvents() {
@@ -540,12 +572,16 @@
                 playSong: function (idx) {
                     state.currentSongIndex = idx;
                     var song = state.songs[idx];
-                    audio.src = convertDriveUrl(song.driveUrl);
-                    audio.play();
-                    state.isPlaying = true;
-                    document.getElementById("km-player-title").innerText = song.title;
-                    document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
-                    document.getElementById("km-player-play-btn").innerText = "⏸";
+                    var playableUrl = convertDriveUrl(song.driveUrl);
+                    audio.src = playableUrl;
+                    audio.play().then(function() {
+                        state.isPlaying = true;
+                        document.getElementById("km-player-title").innerText = song.title;
+                        document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
+                        document.getElementById("km-player-play-btn").innerText = "⏸";
+                    }).catch(function(err) {
+                        alert("Lỗi phát nhạc: Không thể phát tệp âm thanh này. Vui lòng kiểm tra lại đường dẫn Google Drive công khai (Public link).");
+                    });
                 },
                 deleteSong: function (id) {
                     if (!state.isAdmin) {
@@ -555,7 +591,9 @@
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
                         localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                        state.currentSongIndex = -1;
                         renderActiveView();
+                        alert("Đã xóa bài hát khỏi web thành công!");
                     }
                 },
                 saveUpload: function () {
