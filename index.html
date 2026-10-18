@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Pure-Web Ultra Fix v3)
+         * Khanh Melody Single-File Standalone Web App (Pure-Web Ultra Fix v4 - No Demo Songs)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18-Ultima)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18-NoDemo)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -202,32 +202,7 @@
                 selectedGenre: "Tất cả",
                 currentSongIndex: -1,
                 isPlaying: false,
-                songs: [
-                    {
-                        id: "s1",
-                        title: "Áo Em Có Gắn",
-                        artist: "Khánh Memory",
-                        album: "Album Khánh Memory S3",
-                        genre: "Pop Ballad",
-                        category: "Bài hát yêu thích",
-                        cdName: "CD Guitar Trịnh",
-                        driveUrl: "https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9/view?usp=sharing",
-                        likeCount: 142,
-                        isLiked: true
-                    },
-                    {
-                        id: "s2",
-                        title: "Giai Điệu Bình Yên",
-                        artist: "Khánh Memory",
-                        album: "Acoustic Sunset",
-                        genre: "Acoustic",
-                        category: "Danh sách bài hát hiện hành",
-                        cdName: "CD Guitar Trịnh",
-                        driveUrl: "https://drive.google.com/file/d/1X2Y3Z4A5B6C7D8E9/view?usp=sharing",
-                        likeCount: 89,
-                        isLiked: true
-                    }
-                ],
+                songs: [], // NO DEMO SONGS AT ALL! Starts completely empty!
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Lê Thị Hồng", email: "hong.le@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "120.000 VNĐ" },
@@ -260,11 +235,13 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v3');
+                var saved = localStorage.getItem('km_songs_v4');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
                     } catch(e) {}
+                } else {
+                    localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
                 }
                 renderSidebar();
                 renderActiveView();
@@ -310,7 +287,7 @@
                         html = renderMainSongList("🎧 List nhạc của tôi (" + myLiked.length + ")", myLiked);
                         break;
                     case 7:
-                        html = renderMainSongList("💿 Tất cả bài hát & CD (Liệt kê chi tiết)", state.songs);
+                        html = renderMainSongList("💿 Danh sách tất cả bài hát & CD", state.songs);
                         break;
                     case 4:
                         if (state.isAdmin) html = renderUploadView();
@@ -341,7 +318,7 @@
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
-                    songsHtml = `<div style="text-align:center; padding: 40px; color: rgba(255,255,255,0.6);">🎵 Chưa có bài hát nào trong danh mục này</div>`;
+                    songsHtml = `<div style="text-align:center; padding: 40px; color: rgba(255,255,255,0.6);">🎵 Chưa có bài hát nào trong danh mục này. Hãy vào 'Tải bài lên' để thêm bài hát!</div>`;
                 } else {
                     list.forEach(function (song, idx) {
                         var isPlayingThis = (idx === state.currentSongIndex && state.isPlaying);
@@ -502,7 +479,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v3', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -606,7 +583,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v3', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -643,8 +620,8 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v3', JSON.stringify(state.songs));
-                    alert("Đã lưu thành công " + lines.length + " bài hát thành các hàng ngang trực tiếp để phát nhạc!");
+                    localStorage.setItem('km_songs_v4', JSON.stringify(state.songs));
+                    alert("Đã lưu thành công " + lines.length + " bài hát thành các hàng ngang trực tiếp!");
                     state.selectedTab = 1;
                     renderSidebar();
                     renderActiveView();
@@ -653,7 +630,7 @@
                     var name = document.getElementById("km-reg-name").value.trim();
                     var email = document.getElementById("km-reg-email").value.trim();
                     if (!name || !email) {
-                        alert("Vui lòng nhập đầy đủ Họ tên và Địa chỉ Email!");
+                        alert("Mời nhập đầy đủ Họ tên và Địa chỉ Email!");
                         return;
                     }
                     state.registeredMembers.unshift({
