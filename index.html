@@ -6,11 +6,11 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Google Drive Embedded Player Fix)
+         * Khanh Melody Single-File Standalone Web App (Unified 1-Click Audio Engine)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 150px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 95px; }
         #km-app-container { display: flex; flex-direction: column; min-height: 100vh; }
 
         /* TOPBAR */
@@ -60,10 +60,10 @@
         .km-textarea { height: 90px; resize: vertical; }
         .km-save-btn { width: 100%; background: #ffd700; color: #0d47a1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-        /* BOTTOM PLAYER - ALWAYS VISIBLE WITH EMBEDDED DRIVE IFRAME SUPPORT */
-        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; min-height: 85px; height: auto; display: flex; flex-direction: column; }
-        .km-player-progress-bar { height: 5px; background: #ffd700; width: 0%; }
-        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; flex: 1; }
+        /* BOTTOM PLAYER - UNIFIED & FIXED */
+        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; height: 85px; display: flex; flex-direction: column; }
+        .km-player-progress-bar { height: 5px; background: #ffd700; width: 0%; transition: width 0.2s linear; }
+        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; flex: 1; }
         .km-player-left { display: flex; align-items: center; gap: 14px; }
         .km-player-avatar { width: 46px; height: 46px; background: #ffd700; color: #0b192c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
         .km-player-title { font-size: 16px; font-weight: bold; color: #ffffff; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-DriveEmbedFix)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-1ClickUnified)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -126,12 +126,12 @@
             </main>
         </div>
 
-        <!-- BOTTOM PLAYER - ALWAYS VISIBLE WITH DRIVE IFRAME SUPPORT -->
+        <!-- BOTTOM PLAYER - UNIFIED & ALWAYS VISIBLE -->
         <footer class="km-bottom-player" id="km-bottom-player">
             <div class="km-player-progress-bar" id="km-player-progress-bar"></div>
             <div class="km-player-inner">
                 <div class="km-player-left">
-                    <div class="km-player-avatar">🎼</div>
+                    <div class="km-player-avatar" id="km-player-avatar">🎼</div>
                     <div class="km-player-song-info">
                         <div class="km-player-title" id="km-player-title">Chưa chọn bài hát</div>
                         <div class="km-player-artist" id="km-player-artist">Khánh Memory</div>
@@ -144,8 +144,6 @@
                     <button class="km-icon-btn km-close-icon-btn" id="km-player-close-btn" title="Đóng">✕</button>
                 </div>
             </div>
-            <!-- EMBEDDED DRIVE AUDIO PLAYER CONTAINER (GUARANTEED ZERO CORS PLAYBACK) -->
-            <div id="km-embed-player-container" style="display:none; padding: 0 16px 8px 16px;"></div>
         </footer>
     </div>
 
@@ -229,6 +227,34 @@
 
             var audio = new Audio();
 
+            // Native HTML5 Audio Events for Unified 1-Click State Sync
+            audio.onplay = function () {
+                state.isPlaying = true;
+                var playBtn = document.getElementById("km-player-play-btn");
+                if (playBtn) playBtn.innerText = "⏸";
+                renderActiveView();
+            };
+
+            audio.onpause = function () {
+                state.isPlaying = false;
+                var playBtn = document.getElementById("km-player-play-btn");
+                if (playBtn) playBtn.innerText = "▶";
+                renderActiveView();
+            };
+
+            audio.ontimeupdate = function () {
+                var progressBar = document.getElementById("km-player-progress-bar");
+                if (progressBar && audio.duration > 0) {
+                    var pct = (audio.currentTime / audio.duration) * 100;
+                    progressBar.style.width = pct + "%";
+                }
+            };
+
+            audio.onended = function () {
+                state.isPlaying = false;
+                window.KMApp.nextSong();
+            };
+
             function extractDriveFileId(url) {
                 if (!url) return null;
                 var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
@@ -239,13 +265,13 @@
                 if (!url) return "";
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
-                    return "https://drive.google.com/uc?export=open&id=" + fileId;
+                    return "https://drive.usercontent.google.com/download?id=" + fileId + "&export=download&confirm=t";
                 }
                 return url;
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v9');
+                var saved = localStorage.getItem('km_songs_v10');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
@@ -388,7 +414,7 @@
                 </div>`;
             }
 
-            // FLAT SONG LIST RENDERER - WITH EXPLICIT PLAY BUTTON ON EVERY ROW
+            // FLAT SONG LIST RENDERER - UNIFIED SINGLE PLAY BUTTON PER ROW
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -558,7 +584,10 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v10', JSON.stringify(state.songs));
+                        audio.pause();
+                        state.isPlaying = false;
+                        state.currentPlayingId = null;
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -574,19 +603,13 @@
                     document.getElementById("km-vietqr-modal").style.display = "none";
                 });
 
-                // BOTTOM PLAYER CONTROLS
+                // BOTTOM PLAYER CONTROLS (FULLY SYNCED)
                 document.getElementById("km-player-play-btn").addEventListener("click", function () {
                     if (state.isPlaying) {
                         audio.pause();
-                        state.isPlaying = false;
-                        this.innerText = "▶";
-                        renderActiveView();
                     } else {
                         if (state.currentSongIndex >= 0 && state.songs[state.currentSongIndex]) {
-                            audio.play();
-                            state.isPlaying = true;
-                            this.innerText = "⏸";
-                            renderActiveView();
+                            audio.play().catch(function(){});
                         } else if (state.songs.length > 0) {
                             window.KMApp.playSongId(state.songs[0].id);
                         }
@@ -594,10 +617,7 @@
                 });
 
                 document.getElementById("km-player-next-btn").addEventListener("click", function () {
-                    if (state.songs.length === 0) return;
-                    var curIdx = state.songs.findIndex(function(s){ return s.id === state.currentPlayingId; });
-                    var nextIdx = (curIdx >= 0 && curIdx < state.songs.length - 1) ? curIdx + 1 : 0;
-                    window.KMApp.playSongId(state.songs[nextIdx].id);
+                    window.KMApp.nextSong();
                 });
 
                 document.getElementById("km-player-close-btn").addEventListener("click", function () {
@@ -640,43 +660,47 @@
                     state.selectedGenre = g;
                     renderActiveView();
                 },
+                nextSong: function () {
+                    if (state.songs.length === 0) return;
+                    var curIdx = state.songs.findIndex(function(s){ return s.id === state.currentPlayingId; });
+                    var nextIdx = (curIdx >= 0 && curIdx < state.songs.length - 1) ? curIdx + 1 : 0;
+                    this.playSongId(state.songs[nextIdx].id);
+                },
                 playSongId: function (id) {
                     var idx = state.songs.findIndex(function(s){ return s.id === id; });
                     if (idx < 0) return;
 
                     var song = state.songs[idx];
-                    var fileId = extractDriveFileId(song.driveUrl);
 
-                    // Toggle play/pause if same song clicked
+                    // 1-CLICK TOGGLE PLAY / PAUSE
                     if (state.currentPlayingId === id && state.isPlaying) {
                         audio.pause();
-                        state.isPlaying = false;
-                        document.getElementById("km-player-play-btn").innerText = "▶";
-                        renderActiveView();
                         return;
                     }
 
                     state.currentSongIndex = idx;
                     state.currentPlayingId = id;
-                    state.isPlaying = true;
 
                     document.getElementById("km-player-title").innerText = song.title;
                     document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
-                    document.getElementById("km-player-play-btn").innerText = "⏸";
 
-                    var embedContainer = document.getElementById("km-embed-player-container");
+                    var playableUrl = convertDriveUrl(song.driveUrl);
+                    audio.src = playableUrl;
 
-                    if (fileId) {
-                        // Embedded Google Drive Native Audio Player Iframe (100% Zero-CORS Playback Guarantee!)
-                        embedContainer.style.display = "block";
-                        embedContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="56" style="border:none; border-radius:8px; background:#000;" allow="autoplay"></iframe>`;
-                    } else {
-                        embedContainer.style.display = "none";
-                        audio.src = convertDriveUrl(song.driveUrl);
-                        audio.play().catch(function(err) {});
+                    // Direct 1-Click Playback
+                    var promise = audio.play();
+                    if (promise !== undefined) {
+                        promise.then(function() {
+                            state.isPlaying = true;
+                            document.getElementById("km-player-play-btn").innerText = "⏸";
+                            renderActiveView();
+                        }).catch(function(err) {
+                            state.isPlaying = false;
+                            document.getElementById("km-player-play-btn").innerText = "▶";
+                            document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới trong 'Tải bài lên'!";
+                            renderActiveView();
+                        });
                     }
-
-                    renderActiveView();
                 },
                 playSong: function (idxOrId) {
                     if (typeof idxOrId === 'string') {
@@ -693,10 +717,14 @@
                         return;
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
+                        if (state.currentPlayingId === id) {
+                            audio.pause();
+                            state.isPlaying = false;
+                            state.currentPlayingId = null;
+                        }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v10', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
-                        state.currentPlayingId = null;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát khỏi web thành công!");
                     }
@@ -740,7 +768,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_v10', JSON.stringify(state.songs));
                     alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát thật từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
                     state.selectedTab = 7;
                     state.selectedCdName = title || "CD mới";
