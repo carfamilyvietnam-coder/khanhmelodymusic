@@ -500,7 +500,7 @@
                 });
 
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
-                    if (confirm("Bạn có chắc chắn muốn xóa trắng toàn bộ bài hát?")) {
+                    if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
                         localStorage.setItem('km_songs', JSON.stringify(state.songs));
                         renderActiveView();
@@ -552,9 +552,11 @@
                         alert("Chỉ Quản trị viên (Admin) mới có quyền xóa bài hát!");
                         return;
                     }
-                    state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                    localStorage.setItem('km_songs', JSON.stringify(state.songs));
-                    renderActiveView();
+                    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
+                        state.songs = state.songs.filter(function (s) { return s.id !== id; });
+                        localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                        renderActiveView();
+                    }
                 },
                 saveUpload: function () {
                     if (!state.isAdmin) {
