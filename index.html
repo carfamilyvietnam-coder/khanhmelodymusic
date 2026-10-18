@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <!-- Sync Version: 2026-10-18 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App
+         * Khanh Melody Single-File Standalone Web App (Pure-Web)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,9 +48,9 @@
         .km-card { background: #1e3e62; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
         .km-card-title { font-size: 18px; font-weight: bold; color: #4ba3e3; margin-bottom: 14px; }
         .km-song-list { display: flex; flex-direction: column; gap: 8px; }
-        .km-song-item { display: flex; justifyContent: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 12px 16px; border-radius: 12px; cursor: pointer; }
+        .km-song-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 12px 16px; border-radius: 12px; cursor: pointer; }
         .km-song-item:hover, .km-song-active { background: rgba(255, 255, 255, 0.15); }
-        .km-song-thumb { width: 44px; height: 44px; background: #1565c0; border-radius: 8px; display: flex; align-items: center; justifyContent: center; font-weight: bold; font-size: 18px; }
+        .km-song-thumb { width: 44px; height: 44px; background: #1565c0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
         .km-song-meta { flex: 1; margin-left: 14px; }
         .km-song-name { font-size: 15px; font-weight: bold; }
         .km-song-desc { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
@@ -66,7 +65,7 @@
         .km-player-progress-bar { height: 4px; background: #ffd700; width: 0%; }
         .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; }
         .km-player-left { display: flex; align-items: center; gap: 12px; }
-        .km-player-avatar { width: 38px; height: 38px; background: #1565c0; border-radius: 50%; display: flex; align-items: center; justifyContent: center; }
+        .km-player-avatar { width: 38px; height: 38px; background: #1565c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .km-player-title { font-size: 14px; font-weight: bold; }
         .km-player-artist { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
         .km-player-right { display: flex; align-items: center; gap: 10px; }
@@ -198,7 +197,7 @@
 
             var state = {
                 selectedTab: 1,
-                isAdmin: false, // Default to Member Mode
+                isAdmin: false,
                 searchQuery: "",
                 selectedGenre: "Tất cả",
                 currentSongIndex: -1,
@@ -261,6 +260,12 @@
             }
 
             function initApp() {
+                var saved = localStorage.getItem('km_songs');
+                if (saved) {
+                    try {
+                        state.songs = JSON.parse(saved);
+                    } catch(e) {}
+                }
                 renderSidebar();
                 renderActiveView();
                 bindGlobalEvents();
@@ -332,6 +337,7 @@
                 bindViewEvents();
             }
 
+            // FLAT SONG LIST RENDERER (Direct horizontal rows, no nested folders)
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -496,6 +502,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa trắng toàn bộ bài hát?")) {
                         state.songs = [];
+                        localStorage.setItem('km_songs', JSON.stringify(state.songs));
                         renderActiveView();
                     }
                 });
@@ -546,6 +553,7 @@
                         return;
                     }
                     state.songs = state.songs.filter(function (s) { return s.id !== id; });
+                    localStorage.setItem('km_songs', JSON.stringify(state.songs));
                     renderActiveView();
                 },
                 saveUpload: function () {
@@ -562,23 +570,24 @@
                         return;
                     }
 
-                    urls.split("\n").forEach(function (url, i) {
-                        if (url.trim()) {
-                            state.songs.unshift({
-                                id: "s_" + Date.now() + "_" + i,
-                                title: title || ("Bài hát " + (state.songs.length + 1)),
-                                artist: "Khánh Memory",
-                                album: album || "Album Khánh Memory",
-                                genre: "Acoustic",
-                                category: "Danh sách bài hát hiện hành",
-                                driveUrl: url.trim(),
-                                likeCount: 1,
-                                isLiked: true
-                            });
-                        }
+                    var lines = urls.split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+                    lines.forEach(function (url, i) {
+                        var songTitle = lines.length > 1 ? (title || "Bài hát CD") + " (" + (i + 1) + ")" : (title || "Bài hát mới");
+                        state.songs.unshift({
+                            id: "s_" + Date.now() + "_" + i,
+                            title: songTitle,
+                            artist: "CD: " + (title || "Khánh Memory"),
+                            album: album || "Album Khánh Memory",
+                            genre: "Acoustic",
+                            category: "Danh sách bài hát hiện hành",
+                            driveUrl: url,
+                            likeCount: 1,
+                            isLiked: true
+                        });
                     });
 
-                    alert("Đã lưu bài hát & Thêm bài hát mới thành công!");
+                    localStorage.setItem('km_songs', JSON.stringify(state.songs));
+                    alert("Đã lưu thành công " + lines.length + " bài hát thành các hàng ngang trực tiếp!");
                     state.selectedTab = 1;
                     renderSidebar();
                     renderActiveView();
