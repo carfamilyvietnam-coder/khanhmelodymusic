@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Web Audio Stream Fix)
+         * Khanh Melody Single-File Standalone Web App (Pure-Web v7 - Clean State)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-StreamFix)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-v7)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -203,32 +203,7 @@
                 selectedCdName: null,
                 currentSongIndex: -1,
                 isPlaying: false,
-                songs: [
-                    {
-                        id: "s1",
-                        title: "Đêm buồn (1)",
-                        artist: "CD: Đêm buồn",
-                        album: "Album Đêm buồn",
-                        genre: "Acoustic",
-                        category: "Nhóm CD",
-                        cdName: "Đêm buồn",
-                        driveUrl: "https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9/view?usp=sharing",
-                        likeCount: 142,
-                        isLiked: true
-                    },
-                    {
-                        id: "s2",
-                        title: "Đêm buồn (2)",
-                        artist: "CD: Đêm buồn",
-                        album: "Album Đêm buồn",
-                        genre: "Acoustic",
-                        category: "Nhóm CD",
-                        cdName: "Đêm buồn",
-                        driveUrl: "https://drive.google.com/file/d/1X2Y3Z4A5B6C7D8E9/view?usp=sharing",
-                        likeCount: 89,
-                        isLiked: true
-                    }
-                ],
+                songs: [], // ZERO MOCK DEMO SONGS! STARTS COMPLETELY CLEAN!
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Lê Thị Hồng", email: "hong.le@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "120.000 VNĐ" },
@@ -251,7 +226,6 @@
 
             var audio = new Audio();
 
-            // CONVERT GOOGLE DRIVE LINK TO DIRECT STREAMABLE AUDIO URL (export=open)
             function convertDriveUrl(url) {
                 if (!url) return "";
                 var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
@@ -262,7 +236,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v6');
+                var saved = localStorage.getItem('km_songs_v7');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
@@ -369,7 +343,18 @@
 
                 var cdKeys = Object.keys(cdMap);
                 if (cdKeys.length === 0) {
-                    return `<div class="km-card"><div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div><div style="text-align:center; padding: 40px; color:rgba(255,255,255,0.6);">Chưa có nhóm CD nào. Hãy vào 'Tải bài lên' để thêm bài hát/CD mới!</div></div>`;
+                    return `
+                    <div class="km-card">
+                        <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
+                        <div style="text-align:center; padding: 40px; color:rgba(255,255,255,0.7);">
+                            🎵 Chưa có bài hát hay CD nào trên web!<br/><br/>
+                            👉 <strong>Hướng dẫn dán 5 link CD của bạn</strong>:<br/>
+                            1. Bấm nút <strong>'👤 Chế độ Thành viên'</strong> góc trên cùng phải -> Nhập mật khẩu Admin: <strong>1234</strong><br/>
+                            2. Vào mục <strong>'📤 Tải bài lên'</strong> ở menu bên trái.<br/>
+                            3. Nhập Tên CD (Ví dụ: <strong>Đêm buồn</strong>) và Dán 5 link Google Drive của bạn.<br/>
+                            4. Bấm <strong>'Lưu bài hát'</strong>: Đúng 5 bài hát thật của bạn sẽ xuất hiện ngay lập tức!
+                        </div>
+                    </div>`;
                 }
 
                 var cdCardsHtml = "";
@@ -398,7 +383,11 @@
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
-                    songsHtml = `<div style="text-align:center; padding: 40px; color: rgba(255,255,255,0.6);">🎵 Chưa có bài hát nào trong danh mục này. Hãy vào 'Tải bài lên' để thêm bài hát!</div>`;
+                    songsHtml = `
+                    <div style="text-align:center; padding: 40px; color: rgba(255,255,255,0.7);">
+                        🎵 Danh sách đang trống!<br/><br/>
+                        👉 Vui lòng đổi sang <strong>Chế độ Admin (Mật khẩu: 1234)</strong> -> Vào mục <strong>'📤 Tải bài lên'</strong> -> Dán 5 link Google Drive của bạn để hiển thị và nghe nhạc!
+                    </div>`;
                 } else {
                     list.forEach(function (song, idx) {
                         var isPlayingThis = (idx === state.currentSongIndex && state.isPlaying);
@@ -446,9 +435,9 @@
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label>Tên Album:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Album Trần Xuân Khánh" class="km-input" />
-                    <label>Nhiều link Google Drive (mỗi link 1 dòng, mỗi link thành 1 bài hàng ngang riêng biệt):</label>
+                    <label>Dán 5 link Google Drive của bạn (mỗi link 1 dòng hoặc cách nhau khoảng trắng):</label>
                     <textarea id="km-up-urls" placeholder="https://drive.google.com/file/d/LINK_1/view&#10;https://drive.google.com/file/d/LINK_2/view" class="km-textarea"></textarea>
-                    <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Liệt kê hàng ngang trực tiếp</button>
+                    <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Tạo 5 bài phát nhạc trực tiếp</button>
                 </div>`;
             }
 
@@ -559,7 +548,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v7', JSON.stringify(state.songs));
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -676,7 +665,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v7', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -722,9 +711,10 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v6', JSON.stringify(state.songs));
-                    alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
-                    state.selectedTab = 1;
+                    localStorage.setItem('km_songs_v7', JSON.stringify(state.songs));
+                    alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát thật từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
+                    state.selectedTab = 7;
+                    state.selectedCdName = title || "CD mới";
                     renderSidebar();
                     renderActiveView();
                 },
