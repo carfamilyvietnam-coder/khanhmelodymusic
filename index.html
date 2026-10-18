@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (CD Tracklist Detail Fix)
+         * Khanh Melody Single-File Standalone Web App (Web Audio Stream Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.18-CdDetail)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-StreamFix)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -200,7 +200,7 @@
                 isAdmin: false,
                 searchQuery: "",
                 selectedGenre: "Tất cả",
-                selectedCdName: null, // Holds selected CD name to open tracklist detail view
+                selectedCdName: null,
                 currentSongIndex: -1,
                 isPlaying: false,
                 songs: [
@@ -223,7 +223,7 @@
                         album: "Album Đêm buồn",
                         genre: "Acoustic",
                         category: "Nhóm CD",
-                        cdName: "CD Đêm buồn",
+                        cdName: "Đêm buồn",
                         driveUrl: "https://drive.google.com/file/d/1X2Y3Z4A5B6C7D8E9/view?usp=sharing",
                         likeCount: 89,
                         isLiked: true
@@ -251,11 +251,12 @@
 
             var audio = new Audio();
 
+            // CONVERT GOOGLE DRIVE LINK TO DIRECT STREAMABLE AUDIO URL (export=open)
             function convertDriveUrl(url) {
                 if (!url) return "";
                 var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
                 if (match && match[1]) {
-                    return "https://drive.google.com/uc?export=download&id=" + match[1];
+                    return "https://drive.google.com/uc?export=open&id=" + match[1];
                 }
                 return url;
             }
@@ -359,7 +360,6 @@
                     </div>`;
                 }
 
-                // Group songs by CD Name or Title Base
                 var cdMap = {};
                 state.songs.forEach(function (s) {
                     var name = s.cdName || s.title.replace(/\s*\(\d+\)$/, "") || "Album CD";
@@ -655,7 +655,7 @@
                     }).catch(function(err) {
                         state.isPlaying = false;
                         document.getElementById("km-player-title").innerText = song.title;
-                        document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới!";
+                        document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới trong 'Tải bài lên'!";
                         document.getElementById("km-player-play-btn").innerText = "▶";
                         renderActiveView();
                     });
