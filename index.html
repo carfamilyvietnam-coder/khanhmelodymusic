@@ -653,7 +653,11 @@
                         document.getElementById("km-player-play-btn").innerText = "⏸";
                         renderActiveView();
                     }).catch(function(err) {
-                        alert("Lỗi phát nhạc: Không thể phát tệp âm thanh này. Vui lòng kiểm tra lại đường dẫn Google Drive công khai (Public link).");
+                        state.isPlaying = false;
+                        document.getElementById("km-player-title").innerText = song.title;
+                        document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới!";
+                        document.getElementById("km-player-play-btn").innerText = "▶";
+                        renderActiveView();
                     });
                 },
                 playSong: function (idxOrId) {
