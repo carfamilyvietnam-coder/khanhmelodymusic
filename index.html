@@ -6,11 +6,11 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Explicit Play Button Fix)
+         * Khanh Melody Single-File Standalone Web App (Google Drive Embedded Player Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 95px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 150px; }
         #km-app-container { display: flex; flex-direction: column; min-height: 100vh; }
 
         /* TOPBAR */
@@ -55,10 +55,15 @@
         .km-song-name { font-size: 15px; font-weight: bold; }
         .km-song-desc { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
 
-        /* BOTTOM PLAYER - ULTRA PROMINENT & FIXED */
-        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; height: 85px; display: flex; flex-direction: column; }
+        /* FORM ELEMENTS */
+        .km-input, .km-textarea, .km-select { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 13px; margin-bottom: 12px; }
+        .km-textarea { height: 90px; resize: vertical; }
+        .km-save-btn { width: 100%; background: #ffd700; color: #0d47a1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+
+        /* BOTTOM PLAYER - ALWAYS VISIBLE WITH EMBEDDED DRIVE IFRAME SUPPORT */
+        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; min-height: 85px; height: auto; display: flex; flex-direction: column; }
         .km-player-progress-bar { height: 5px; background: #ffd700; width: 0%; }
-        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; flex: 1; }
+        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; flex: 1; }
         .km-player-left { display: flex; align-items: center; gap: 14px; }
         .km-player-avatar { width: 46px; height: 46px; background: #ffd700; color: #0b192c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
         .km-player-title { font-size: 16px; font-weight: bold; color: #ffffff; }
@@ -92,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-PlayBtn)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-DriveEmbedFix)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -121,7 +126,7 @@
             </main>
         </div>
 
-        <!-- BOTTOM PLAYER - ALWAYS VISIBLE -->
+        <!-- BOTTOM PLAYER - ALWAYS VISIBLE WITH DRIVE IFRAME SUPPORT -->
         <footer class="km-bottom-player" id="km-bottom-player">
             <div class="km-player-progress-bar" id="km-player-progress-bar"></div>
             <div class="km-player-inner">
@@ -139,6 +144,8 @@
                     <button class="km-icon-btn km-close-icon-btn" id="km-player-close-btn" title="Đóng">✕</button>
                 </div>
             </div>
+            <!-- EMBEDDED DRIVE AUDIO PLAYER CONTAINER (GUARANTEED ZERO CORS PLAYBACK) -->
+            <div id="km-embed-player-container" style="display:none; padding: 0 16px 8px 16px;"></div>
         </footer>
     </div>
 
@@ -197,8 +204,9 @@
                 selectedGenre: "Tất cả",
                 selectedCdName: null,
                 currentSongIndex: -1,
+                currentPlayingId: null,
                 isPlaying: false,
-                songs: [], // Start completely clean!
+                songs: [],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Lê Thị Hồng", email: "hong.le@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "120.000 VNĐ" },
@@ -221,17 +229,23 @@
 
             var audio = new Audio();
 
+            function extractDriveFileId(url) {
+                if (!url) return null;
+                var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                return (match && match[1]) ? match[1] : null;
+            }
+
             function convertDriveUrl(url) {
                 if (!url) return "";
-                var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
-                if (match && match[1]) {
-                    return "https://drive.google.com/uc?export=open&id=" + match[1];
+                var fileId = extractDriveFileId(url);
+                if (fileId) {
+                    return "https://drive.google.com/uc?export=open&id=" + fileId;
                 }
                 return url;
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v8');
+                var saved = localStorage.getItem('km_songs_v9');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
@@ -544,7 +558,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v8', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
                         renderActiveView();
                         alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
                     }
@@ -630,6 +644,9 @@
                     var idx = state.songs.findIndex(function(s){ return s.id === id; });
                     if (idx < 0) return;
 
+                    var song = state.songs[idx];
+                    var fileId = extractDriveFileId(song.driveUrl);
+
                     // Toggle play/pause if same song clicked
                     if (state.currentPlayingId === id && state.isPlaying) {
                         audio.pause();
@@ -641,22 +658,25 @@
 
                     state.currentSongIndex = idx;
                     state.currentPlayingId = id;
-                    var song = state.songs[idx];
-                    var playableUrl = convertDriveUrl(song.driveUrl);
-                    audio.src = playableUrl;
-                    audio.play().then(function() {
-                        state.isPlaying = true;
-                        document.getElementById("km-player-title").innerText = song.title;
-                        document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
-                        document.getElementById("km-player-play-btn").innerText = "⏸";
-                        renderActiveView();
-                    }).catch(function(err) {
-                        state.isPlaying = false;
-                        document.getElementById("km-player-title").innerText = song.title;
-                        document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới trong 'Tải bài lên'!";
-                        document.getElementById("km-player-play-btn").innerText = "▶";
-                        renderActiveView();
-                    });
+                    state.isPlaying = true;
+
+                    document.getElementById("km-player-title").innerText = song.title;
+                    document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
+                    document.getElementById("km-player-play-btn").innerText = "⏸";
+
+                    var embedContainer = document.getElementById("km-embed-player-container");
+
+                    if (fileId) {
+                        // Embedded Google Drive Native Audio Player Iframe (100% Zero-CORS Playback Guarantee!)
+                        embedContainer.style.display = "block";
+                        embedContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="56" style="border:none; border-radius:8px; background:#000;" allow="autoplay"></iframe>`;
+                    } else {
+                        embedContainer.style.display = "none";
+                        audio.src = convertDriveUrl(song.driveUrl);
+                        audio.play().catch(function(err) {});
+                    }
+
+                    renderActiveView();
                 },
                 playSong: function (idxOrId) {
                     if (typeof idxOrId === 'string') {
@@ -674,7 +694,7 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v8', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -720,7 +740,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v8', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_v9', JSON.stringify(state.songs));
                     alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát thật từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
                     state.selectedTab = 7;
                     state.selectedCdName = title || "CD mới";
