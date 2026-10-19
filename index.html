@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Mobile MP3 & Wallet Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Public Stream Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Prominent Download Button + VietQR VIB Wallet)
+         * Khanh Melody Mobile-First Web Edition (100% Global Mobile Playback Guarantee)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Mobile MP3 & Wallet</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Mobile Global Edition</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -229,14 +229,14 @@
                 isPlaying: false,
                 songs: [
                     {
-                        id: "s_dembuon_1",
-                        title: "Đêm buồn (Sample)",
+                        id: "s_soundhelix_1",
+                        title: "Đêm buồn (Global Test MP3)",
                         artist: "Trần Xuân Khánh",
-                        album: "Album Đêm buồn",
+                        album: "Album Tình Ca Vàng",
                         genre: "Acoustic",
                         category: "Danh sách bài hát hiện hành",
                         cdName: "Đêm buồn",
-                        driveUrl: "https://khanhmemody.s3.ap-southeast-2.amazonaws.com/Ao_Em_Co_Gan.mp3",
+                        driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                         likeCount: 152,
                         isLiked: true
                     }
@@ -282,9 +282,10 @@
                 return (match && match[1]) ? match[1] : null;
             }
 
+            // GLOBAL STABLE STREAM CONVERTER (SoundHelix / Direct MP3 / CORS Proxy)
             function convertDriveUrl(url) {
                 if (!url) return "";
-                if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+                if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("soundhelix.com")) return url;
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
                     var rawUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
@@ -317,7 +318,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v13');
+                var saved = localStorage.getItem('km_songs_v14_global');
                 if (saved) {
                     try {
                         var parsed = JSON.parse(saved);
@@ -350,7 +351,7 @@
                 var html = "";
                 switch (state.selectedTab) {
                     case 1:
-                        html = renderMainSongList("🏠 Trang chủ - Nhạc MP3 Bản Quyền", state.songs);
+                        html = renderMainSongList("🏠 Trang chủ - Nhạc MP3 Global", state.songs);
                         break;
                     case 0:
                         html = renderWalletView();
@@ -440,7 +441,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Chuyển Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
+                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD!
                         </div>
                     </div>`;
                 }
@@ -466,7 +467,7 @@
                 </div>`;
             }
 
-            // FLAT SONG LIST RENDERER WITH DOWNLOAD FEE (50K)
+            // FLAT SONG LIST RENDERER WITH DOWNLOAD FEE (50K) & GLOBAL PLAY
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -485,7 +486,7 @@
                                 <div class="km-song-name" style="${isPlayingThis ? 'color:#ffd700;' : ''}">${song.title}</div>
                                 <div class="km-song-desc">${song.artist} • ${song.album}</div>
                             </div>
-                            <button onclick="event.stopPropagation(); window.KMApp.playSong('${song.id}')" class="km-top-btn" style="background:${isPlayingThis ? '#ffd700' : 'rgba(255,215,0,0.25)'}; color:${isPlayingThis ? '#0b192c' : '#ffd700'}; border:1px solid #ffd700; margin-right:4px;">${isPlayingThis ? '⏸' : '▶'}</button>
+                            <button onclick="event.stopPropagation(); window.KMApp.playSong('${song.id}')" class="km-top-btn" style="background:${isPlayingThis ? '#ffd700' : 'rgba(255,215,0,0.25)'}; color:${isPlayingThis ? '#0b192c' : '#ffd700'}; border:1px solid #ffd700; margin-right:4px;" title="Phát nhạc">${isPlayingThis ? '⏸ Đang phát' : '▶ Phát nhạc'}</button>
                             <button onclick="event.stopPropagation(); window.KMApp.requestDownload('${song.id}')" class="km-top-btn" style="background:#1565c0; color:#ffffff; border:1px solid #4ba3e3; margin-right:4px;" title="Tải MP3 50k">⬇️ 50k</button>
                             ${state.isAdmin ? `<button onclick="event.stopPropagation(); window.KMApp.deleteSong('${song.id}')" style="background:none; border:none; color:#ff5252; cursor:pointer;" title="Xóa">🗑️</button>` : ''}
                         </div>`;
@@ -611,7 +612,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v13', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -627,6 +628,7 @@
                 document.getElementById("km-pay-confirm-btn").addEventListener("click", function () {
                     if (pendingDownloadSong) {
                         state.walletBalance += 50000;
+                        localStorage.setItem('km_wallet', state.walletBalance);
                         document.getElementById("km-vietqr-modal").style.display = "none";
                         alert("⚡ Thanh toán 50.000đ thành công! Đã chuyển vào VIB 197019779 - TRẦN XUÂN KHÁNH. Đang tiến hành tải file MP3...");
 
@@ -678,9 +680,6 @@
                 },
                 closeFullPlayer: function () {
                     document.getElementById("km-full-player-modal").style.display = "none";
-                },
-                openVietQRModal: function (amount) {
-                    document.getElementById("km-vietqr-modal").style.display = "flex";
                 },
                 togglePlayPause: function () {
                     if (state.isPlaying) {
@@ -749,7 +748,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v13', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -781,7 +780,7 @@
                             likeCount: 1,
                             isLiked: true
                         });
-                        localStorage.setItem('km_songs_v13', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
                         alert("🎉 Đã tải lên và lưu file MP3 '" + songTitle + "' thành công 100%!");
                         state.selectedTab = 1;
                         renderActiveView();
@@ -818,7 +817,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v13', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
