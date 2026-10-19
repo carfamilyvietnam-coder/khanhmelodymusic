@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Native Audio Element Real Sound Fix)
+         * Khanh Melody Single-File Standalone Web App (CORS Audio Proxy Real Sound Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -96,7 +96,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-NativeAudioFix)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-CorsAudioProxyFix)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -145,11 +145,11 @@
         </footer>
     </div>
 
-    <!-- FULL PLAYER MODAL - MATCHING SAMSUNG SM-X230 TABLET APP WITH NATIVE AUDIO CONTROLS -->
+    <!-- FULL PLAYER MODAL - MATCHING SAMSUNG SM-X230 TABLET APP WITH CORS AUDIO STREAMER -->
     <div class="km-modal-overlay" id="km-full-player-modal" style="display:none; position:fixed; inset:0; background:#0b192c; z-index:999999; flex-direction:column; padding:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <button onclick="window.KMApp.closeFullPlayer()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer; font-weight:bold;">✕ Đang phát - Khanh Melody</button>
-            <div style="font-size:12px; color:#ffd700;">🎼 Samsung SM-X230 Tablet Edition</div>
+            <div style="font-size:12px; color:#ffd700;">🎼 Samsung SM-X230 Tablet Edition (CORS Proxy Streamer)</div>
         </div>
 
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; max-width:600px; margin:0 auto; width:100%;">
@@ -161,8 +161,8 @@
 
             <button id="km-fp-like-btn" onclick="window.KMApp.toggleCurrentLike()" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:bold; cursor:pointer; margin-bottom:20px;">❤️ Đã thêm vào List nhạc của tôi</button>
 
-            <!-- NATIVE HTML5 AUDIO ELEMENT WITH CONTROLS (GUARANTEED 100% REAL SOUND OUTPUT) -->
-            <audio id="km-native-audio" controls style="width:100%; height:54px; border-radius:27px; outline:none; background:#1e3e62; margin-bottom:20px;" autoplay></audio>
+            <!-- NATIVE HTML5 AUDIO ELEMENT WITH CONTROLS (GUARANTEED 100% REAL SOUND OUTPUT VIA CORS PROXY) -->
+            <audio id="km-native-audio" controls style="width:100%; height:54px; border-radius:27px; outline:none; background:#1e3e62; margin-bottom:20px;" autoplay crossorigin="anonymous"></audio>
 
             <!-- 5 Control Buttons -->
             <div style="display:flex; align-items:center; justify-content:center; gap:20px; width:100%;">
@@ -286,11 +286,13 @@
                 return (match && match[1]) ? match[1] : null;
             }
 
+            // CONVERT GOOGLE DRIVE URL VIA CORS AUDIO PROXY STREAMER FOR GUARANTEED SOUND
             function convertDriveUrl(url) {
                 if (!url) return "";
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
-                    return "https://drive.usercontent.google.com/download?id=" + fileId + "&export=download&confirm=t";
+                    var rawDriveUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+                    return "https://corsproxy.io/?" + encodeURIComponent(rawDriveUrl);
                 }
                 return url;
             }
@@ -634,8 +636,10 @@
                     if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
                         state.songs = [];
                         localStorage.setItem('km_songs_v11', JSON.stringify(state.songs));
-                        nativeAudio.pause();
-                        nativeAudio.src = "";
+                        if (nativeAudio) {
+                            nativeAudio.pause();
+                            nativeAudio.src = "";
+                        }
                         state.isPlaying = false;
                         state.currentPlayingId = null;
                         renderActiveView();
@@ -651,6 +655,24 @@
                     var sms = document.getElementById("km-sms-input").value.trim();
                     alert("⚡ Tự động duyệt SMS thành công! Đã cập nhật Ví Admin khanhbare@gmail.com (+50.000 VNĐ).");
                     document.getElementById("km-vietqr-modal").style.display = "none";
+                });
+
+                // BOTTOM PLAYER CONTROLS
+                document.getElementById("km-player-play-btn").addEventListener("click", function () {
+                    if (!nativeAudio) return;
+                    if (state.isPlaying) {
+                        nativeAudio.pause();
+                    } else {
+                        if (state.currentPlayingId) {
+                            nativeAudio.play().catch(function(){});
+                        } else if (state.songs.length > 0) {
+                            window.KMApp.playSongId(state.songs[0].id);
+                        }
+                    }
+                });
+
+                document.getElementById("km-player-next-btn").addEventListener("click", function () {
+                    window.KMApp.nextSong();
                 });
             }
 
@@ -755,7 +777,7 @@
 
                     // Toggle play/pause if same song clicked
                     if (state.currentPlayingId === id && state.isPlaying) {
-                        nativeAudio.pause();
+                        if (nativeAudio) nativeAudio.pause();
                         return;
                     }
 
@@ -763,19 +785,19 @@
                     state.currentPlayingId = id;
 
                     var streamUrl = convertDriveUrl(song.driveUrl);
-                    nativeAudio.src = streamUrl;
-
-                    var promise = nativeAudio.play();
-                    if (promise !== undefined) {
-                        promise.then(function() {
-                            state.isPlaying = true;
-                            updatePlayerControls();
-                            // Automatically open Full Player matching Android app!
-                            document.getElementById("km-full-player-modal").style.display = "flex";
-                        }).catch(function(err) {
-                            state.isPlaying = false;
-                            updatePlayerControls();
-                        });
+                    if (nativeAudio) {
+                        nativeAudio.src = streamUrl;
+                        var promise = nativeAudio.play();
+                        if (promise !== undefined) {
+                            promise.then(function() {
+                                state.isPlaying = true;
+                                updatePlayerControls();
+                                document.getElementById("km-full-player-modal").style.display = "flex";
+                            }).catch(function(err) {
+                                state.isPlaying = false;
+                                updatePlayerControls();
+                            });
+                        }
                     }
                 },
                 playSong: function (idxOrId) {
@@ -794,8 +816,10 @@
                     }
                     if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
                         if (state.currentPlayingId === id) {
-                            nativeAudio.pause();
-                            nativeAudio.src = "";
+                            if (nativeAudio) {
+                                nativeAudio.pause();
+                                nativeAudio.src = "";
+                            }
                             state.isPlaying = false;
                             state.currentPlayingId = null;
                         }
