@@ -6,11 +6,11 @@
     <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Unified Storage Key Fix)
+         * Khanh Melody Mobile-First Web Edition (Base64 MP3 FileReader Storage Engine)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 110px; display: flex; justify-content: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 95px; display: flex; justify-content: center; }
 
         /* SMARTPHONE CONTAINER FRAME */
         #km-smartphone-frame { width: 100%; max-width: 480px; min-height: 100vh; background: #0b192c; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Admin Upload Fix v2</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Base64 MP3 Fix</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -433,7 +433,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
+                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm bài hát MP3 hoặc CD!
                         </div>
                     </div>`;
                 }
@@ -466,7 +466,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link Drive!
+                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm file MP3 hoặc link Drive!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -553,6 +553,11 @@
 
             function renderAppInstallView() {
                 return `
+                <div class="km-card" style="text-align:center; padding: 24px;">
+                    <div class="km-card-title">🔒 Khu Vực Quản Trị Viên (Admin Upload)</div>
+                    <p style="font-size:12px; margin-bottom:14px; color:rgba(255,255,255,0.85);">Để tải bài hát và CD lên hệ thống, bạn cần đăng nhập quyền Quản trị viên.</p>
+                    <button class="km-save-btn" onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" style="max-width:240px; margin:0 auto;">🔑 Đăng Nhập Admin (MK: 1234)</button>
+                </div>
                 <div class="km-card">
                     <div class="km-card-title">📲 Đăng Ký Thành Viên Miễn Phí</div>
                     <p style="font-size:12px; margin-bottom:12px; color:rgba(255,255,255,0.85);">Đăng ký tài khoản miễn phí để nghe nhạc không giới hạn 0đ từ Khánh Melody.</p>
@@ -620,7 +625,6 @@
                 document.getElementById("km-pay-confirm-btn").addEventListener("click", function () {
                     if (pendingDownloadSong) {
                         state.walletBalance += 50000;
-                        localStorage.setItem('km_wallet', state.walletBalance);
                         document.getElementById("km-vietqr-modal").style.display = "none";
                         alert("⚡ Thanh toán 50.000đ thành công! Đã chuyển vào VIB 197019779 - TRẦN XUÂN KHÁNH. Đang tiến hành tải file MP3...");
 
@@ -758,24 +762,29 @@
 
                     if (fileInput && fileInput.files && fileInput.files[0]) {
                         var file = fileInput.files[0];
-                        var blobUrl = URL.createObjectURL(file);
-                        var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
-                        state.songs.unshift({
-                            id: "s_" + Date.now(),
-                            title: songTitle,
-                            artist: "Tải lên từ thiết bị",
-                            album: album || "Album MP3",
-                            genre: "Acoustic",
-                            category: "Danh sách bài hát hiện hành",
-                            cdName: title || "Nhóm CD",
-                            driveUrl: blobUrl,
-                            likeCount: 1,
-                            isLiked: true
-                        });
-                        localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
-                        alert("🎉 Đã tải lên và lưu file MP3 '" + songTitle + "' thành công 100%!");
-                        state.selectedTab = 1;
-                        renderActiveView();
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var base64Data = e.target.result;
+                            var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
+                            state.songs.unshift({
+                                id: "s_" + Date.now(),
+                                title: songTitle,
+                                artist: "Tải lên từ thiết bị",
+                                album: album || "Album MP3",
+                                genre: "Acoustic",
+                                category: "Danh sách bài hát hiện hành",
+                                cdName: title || "Nhóm CD",
+                                driveUrl: base64Data,
+                                likeCount: 1,
+                                isLiked: true
+                            });
+                            localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
+                            alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
+                            state.selectedTab = 1;
+                            renderSidebar();
+                            renderActiveView();
+                        };
+                        reader.readAsDataURL(file);
                         return;
                     }
 
@@ -812,6 +821,7 @@
                     localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
+                    renderSidebar();
                     renderActiveView();
                 },
                 registerMember: function () {
