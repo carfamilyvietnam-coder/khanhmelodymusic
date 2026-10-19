@@ -6,7 +6,7 @@
     <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Admin Upload UX Prompt Fix)
+         * Khanh Melody Mobile-First Web Edition (Unified Storage Key Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Admin Upload Fix</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Admin Upload Fix v2</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -296,7 +296,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v16_adminfix');
+                var saved = localStorage.getItem('km_songs_global_v1');
                 if (saved) {
                     try {
                         var parsed = JSON.parse(saved);
@@ -433,7 +433,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm bài hát MP3 hoặc CD!
+                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -466,7 +466,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm file MP3 hoặc link Drive!
+                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link Drive!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -604,7 +604,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v16_adminfix', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -740,7 +740,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v16_adminfix', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -772,7 +772,7 @@
                             likeCount: 1,
                             isLiked: true
                         });
-                        localStorage.setItem('km_songs_v16_adminfix', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
                         alert("🎉 Đã tải lên và lưu file MP3 '" + songTitle + "' thành công 100%!");
                         state.selectedTab = 1;
                         renderActiveView();
@@ -809,7 +809,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v16_adminfix', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
