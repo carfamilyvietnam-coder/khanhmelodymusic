@@ -6,7 +6,7 @@
     <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Base64 MP3 FileReader Storage Engine)
+         * Khanh Melody Single-File Standalone Web App (Force Upload Tab Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Base64 MP3 Fix</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.19-FORCE-UPLOAD-FIX</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -311,7 +311,7 @@
                 var navEl = document.getElementById("km-bottom-nav");
                 if (!navEl) return;
 
-                var tabs = state.isAdmin ? [1, 0, 7, 4, 5] : [1, 0, 2, 3, 7];
+                var tabs = state.isAdmin ? [1, 0, 7, 4, 5] : [1, 0, 2, 3, 7, 4];
                 var menuDefs = {
                     1: { icon: "🏠", title: "Trang chủ" },
                     0: { icon: "💳", title: "Ví VIB" },
@@ -359,8 +359,7 @@
                         html = renderCdGroupView();
                         break;
                     case 4:
-                        if (state.isAdmin) html = renderUploadView();
-                        else html = renderAppInstallView();
+                        html = renderUploadView();
                         break;
                     case 5:
                         if (state.isAdmin) html = renderRevenueView();
@@ -433,7 +432,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm bài hát MP3 hoặc CD!
+                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để đăng nhập Admin (1234) và thêm bài hát MP3 hoặc CD!
                         </div>
                     </div>`;
                 }
@@ -466,7 +465,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở thanh menu dưới đáy để thêm file MP3 hoặc link Drive!
+                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link Drive!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -509,14 +508,21 @@
             }
 
             function renderUploadView() {
+                var adminAuthBanner = !state.isAdmin ? `
+                <div style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; border-radius:12px; padding:12px; margin-bottom:14px; text-align:center;">
+                    <div style="font-size:13px; font-weight:bold; color:#ffd700;">🔒 Vui lòng đăng nhập Admin để tải bài hát lên</div>
+                    <button onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" class="km-top-btn" style="background:#ffd700; color:#0b192c; margin-top:8px;">🔑 Bấm Đăng Nhập Admin (MK: 1234)</button>
+                </div>` : '';
+
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Khôn Hạn</div>
+                    ${adminAuthBanner}
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
-                    <label style="font-size:12px;">Chọn file `.mp3` trực tiếp từ thiết bị:</label>
+                    <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
                     <label style="font-size:12px;">Hoặc dán Link Google Drive (mỗi link 1 dòng):</label>
                     <textarea id="km-up-urls" placeholder="https://drive.google.com/..." class="km-textarea"></textarea>
@@ -625,6 +631,7 @@
                 document.getElementById("km-pay-confirm-btn").addEventListener("click", function () {
                     if (pendingDownloadSong) {
                         state.walletBalance += 50000;
+                        localStorage.setItem('km_wallet', state.walletBalance);
                         document.getElementById("km-vietqr-modal").style.display = "none";
                         alert("⚡ Thanh toán 50.000đ thành công! Đã chuyển vào VIB 197019779 - TRẦN XUÂN KHÁNH. Đang tiến hành tải file MP3...");
 
