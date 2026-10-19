@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Mobile MP3 & Public Stream Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (100% Global Mobile Playback Guarantee)
+         * Khanh Melody Mobile-First Web Edition (Dynamic Admin Upload Nav Fix)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,7 +54,7 @@
         .km-textarea { height: 80px; resize: vertical; }
         .km-save-btn { width: 100%; background: #ffd700; color: #0d47a1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-        /* BOTTOM NAV BAR (MOBILE APP STYLE) */
+        /* BOTTOM NAV BAR (DYNAMIC MOBILE APP STYLE) */
         .km-bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #000000; border-top: 1px solid rgba(255, 255, 255, 0.15); display: flex; justify-content: space-around; padding: 8px 4px; z-index: 99; }
         .km-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: rgba(255, 255, 255, 0.6); font-size: 10px; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
         .km-nav-item:hover, .km-nav-active { color: #ffd700; font-weight: bold; background: rgba(255,215,0,0.1); }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Mobile Global Edition</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Mobile Dynamic Nav</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -125,29 +125,8 @@
             </div>
         </footer>
 
-        <!-- BOTTOM NAV BAR (MOBILE APP STYLE) -->
-        <nav class="km-bottom-nav">
-            <div class="km-nav-item km-nav-active" onclick="window.KMApp.selectTab(1)" id="nav-tab-1">
-                <span class="km-nav-icon">🏠</span>
-                <span>Trang chủ</span>
-            </div>
-            <div class="km-nav-item" onclick="window.KMApp.selectTab(0)" id="nav-tab-0">
-                <span class="km-nav-icon">💳</span>
-                <span>Ví VietQR</span>
-            </div>
-            <div class="km-nav-item" onclick="window.KMApp.selectTab(2)" id="nav-tab-2">
-                <span class="km-nav-icon">🧭</span>
-                <span>Khám phá</span>
-            </div>
-            <div class="km-nav-item" onclick="window.KMApp.selectTab(3)" id="nav-tab-3">
-                <span class="km-nav-icon">🎧</span>
-                <span>Thư viện</span>
-            </div>
-            <div class="km-nav-item" onclick="window.KMApp.selectTab(7)" id="nav-tab-7">
-                <span class="km-nav-icon">💿</span>
-                <span>Nhóm CD</span>
-            </div>
-        </nav>
+        <!-- BOTTOM NAV BAR (DYNAMIC MOBILE APP STYLE) -->
+        <nav class="km-bottom-nav" id="km-bottom-nav"></nav>
     </div>
 
     <!-- FULL PLAYER MODAL (MOBILE PLAYER SCREEN) -->
@@ -282,7 +261,6 @@
                 return (match && match[1]) ? match[1] : null;
             }
 
-            // GLOBAL STABLE STREAM CONVERTER (SoundHelix / Direct MP3 / CORS Proxy)
             function convertDriveUrl(url) {
                 if (!url) return "";
                 if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("soundhelix.com")) return url;
@@ -318,7 +296,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v14_global');
+                var saved = localStorage.getItem('km_songs_v15_dynamic');
                 if (saved) {
                     try {
                         var parsed = JSON.parse(saved);
@@ -330,17 +308,31 @@
             }
 
             function updateNavActiveState() {
-                var tabs = [1, 0, 2, 3, 7, 4];
+                var navEl = document.getElementById("km-bottom-nav");
+                if (!navEl) return;
+
+                var tabs = state.isAdmin ? [1, 0, 7, 4, 5] : [1, 0, 2, 3, 7];
+                var menuDefs = {
+                    1: { icon: "🏠", title: "Trang chủ" },
+                    0: { icon: "💳", title: "Ví VIB" },
+                    2: { icon: "🧭", title: "Khám phá" },
+                    3: { icon: "🎧", title: "Thư viện" },
+                    7: { icon: "💿", title: "Nhóm CD" },
+                    4: { icon: "📤", title: "Tải lên" },
+                    5: { icon: "💰", title: "Doanh thu" }
+                };
+
+                var html = "";
                 tabs.forEach(function(i) {
-                    var tab = document.getElementById("nav-tab-" + i);
-                    if (tab) {
-                        if (i === state.selectedTab) {
-                            tab.classList.add("km-nav-active");
-                        } else {
-                            tab.classList.remove("km-nav-active");
-                        }
-                    }
+                    var def = menuDefs[i];
+                    if (!def) return;
+                    var activeClass = i === state.selectedTab ? "km-nav-active" : "";
+                    html += `<div class="km-nav-item ${activeClass}" onclick="window.KMApp.selectTab(${i})" id="nav-tab-${i}">
+                        <span class="km-nav-icon">${def.icon}</span>
+                        <span>${def.title}</span>
+                    </div>`;
                 });
+                navEl.innerHTML = html;
             }
 
             function renderActiveView() {
@@ -351,7 +343,7 @@
                 var html = "";
                 switch (state.selectedTab) {
                     case 1:
-                        html = renderMainSongList("🏠 Trang chủ - Nhạc MP3 Global", state.songs);
+                        html = renderMainSongList("🏠 Trang chủ - Nhạc MP3 & CD", state.songs);
                         break;
                     case 0:
                         html = renderWalletView();
@@ -441,7 +433,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD!
+                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -467,7 +459,7 @@
                 </div>`;
             }
 
-            // FLAT SONG LIST RENDERER WITH DOWNLOAD FEE (50K) & GLOBAL PLAY
+            // FLAT SONG LIST RENDERER WITH DOWNLOAD FEE (50K)
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
@@ -612,7 +604,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v15_dynamic', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -748,7 +740,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v15_dynamic', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -780,7 +772,7 @@
                             likeCount: 1,
                             isLiked: true
                         });
-                        localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_v15_dynamic', JSON.stringify(state.songs));
                         alert("🎉 Đã tải lên và lưu file MP3 '" + songTitle + "' thành công 100%!");
                         state.selectedTab = 1;
                         renderActiveView();
@@ -817,7 +809,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v14_global', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_v15_dynamic', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
