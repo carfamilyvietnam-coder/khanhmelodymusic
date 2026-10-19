@@ -6,7 +6,7 @@
     <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Unified 1-Click Audio Engine)
+         * Khanh Melody Single-File Standalone Web App (Auto-Failover Audio Engine)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-1ClickUnified)</div>
+                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-AutoFailover)</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -226,6 +226,43 @@
             ];
 
             var audio = new Audio();
+            var currentCandidates = [];
+            var currentCandidateIndex = 0;
+
+            function extractDriveFileId(url) {
+                if (!url) return null;
+                var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
+                return (match && match[1]) ? match[1] : null;
+            }
+
+            function getDriveStreamCandidates(rawUrl) {
+                if (!rawUrl) return [];
+                var fileId = extractDriveFileId(rawUrl);
+                if (fileId) {
+                    return [
+                        "https://drive.usercontent.google.com/download?id=" + fileId + "&export=download&confirm=t",
+                        "https://drive.google.com/uc?export=open&id=" + fileId,
+                        "https://docs.google.com/uc?export=download&id=" + fileId,
+                        "https://corsproxy.io/?" + encodeURIComponent("https://drive.google.com/uc?export=download&id=" + fileId)
+                    ];
+                }
+                return [rawUrl];
+            }
+
+            // AUTO-FAILOVER STREAMING LOGIC
+            audio.onerror = function () {
+                if (currentCandidates.length > 0 && currentCandidateIndex < currentCandidates.length - 1) {
+                    currentCandidateIndex++;
+                    audio.src = currentCandidates[currentCandidateIndex];
+                    audio.play().catch(function(e) { console.log("Failover attempt failed:", e); });
+                } else {
+                    state.isPlaying = false;
+                    var playBtn = document.getElementById("km-player-play-btn");
+                    if (playBtn) playBtn.innerText = "▶";
+                    document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive riêng tư (chưa mở quyền công khai 'Bất kỳ ai có liên kết đều có thể xem')!";
+                    renderActiveView();
+                }
+            };
 
             // Native HTML5 Audio Events for Unified 1-Click State Sync
             audio.onplay = function () {
@@ -254,21 +291,6 @@
                 state.isPlaying = false;
                 window.KMApp.nextSong();
             };
-
-            function extractDriveFileId(url) {
-                if (!url) return null;
-                var match = url.match(/(?:file\/d\/|id=|\/d\/)([a-zA-Z0-9_-]+)/);
-                return (match && match[1]) ? match[1] : null;
-            }
-
-            function convertDriveUrl(url) {
-                if (!url) return "";
-                var fileId = extractDriveFileId(url);
-                if (fileId) {
-                    return "https://drive.usercontent.google.com/download?id=" + fileId + "&export=download&confirm=t";
-                }
-                return url;
-            }
 
             function initApp() {
                 var saved = localStorage.getItem('km_songs_v10');
@@ -684,22 +706,21 @@
                     document.getElementById("km-player-title").innerText = song.title;
                     document.getElementById("km-player-artist").innerText = song.artist + " • Album: " + song.album;
 
-                    var playableUrl = convertDriveUrl(song.driveUrl);
-                    audio.src = playableUrl;
+                    currentCandidates = getDriveStreamCandidates(song.driveUrl);
+                    currentCandidateIndex = 0;
 
-                    // Direct 1-Click Playback
-                    var promise = audio.play();
-                    if (promise !== undefined) {
-                        promise.then(function() {
-                            state.isPlaying = true;
-                            document.getElementById("km-player-play-btn").innerText = "⏸";
-                            renderActiveView();
-                        }).catch(function(err) {
-                            state.isPlaying = false;
-                            document.getElementById("km-player-play-btn").innerText = "▶";
-                            document.getElementById("km-player-artist").innerText = "⚠️ Link Google Drive thử nghiệm chưa có tệp MP3 thật. Hãy dán link Drive công khai mới trong 'Tải bài lên'!";
-                            renderActiveView();
-                        });
+                    if (currentCandidates.length > 0) {
+                        audio.src = currentCandidates[0];
+                        var promise = audio.play();
+                        if (promise !== undefined) {
+                            promise.then(function() {
+                                state.isPlaying = true;
+                                document.getElementById("km-player-play-btn").innerText = "⏸";
+                                renderActiveView();
+                            }).catch(function(err) {
+                                if (audio.onerror) audio.onerror();
+                            });
+                        }
                     }
                 },
                 playSong: function (idxOrId) {
