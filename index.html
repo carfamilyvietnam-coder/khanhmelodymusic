@@ -3,223 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Web Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Single-File Standalone Web App (Hidden Drive URL Security Engine)
+         * Khanh Melody Mobile-First Web Edition (Full Features + VietQR VIB + Mobile UI)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0b192c; color: #ffffff; line-height: 1.5; padding-bottom: 95px; }
-        #km-app-container { display: flex; flex-direction: column; min-height: 100vh; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 110px; display: flex; justify-content: center; }
 
-        /* TOPBAR */
-        .km-topbar { background: #1e3e62; display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .km-topbar-left { display: flex; align-items: center; gap: 12px; }
-        .km-logo { width: 42px; height: 42px; background: #1565c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-        .km-brand-name { font-size: 20px; font-weight: 800; color: #4ba3e3; }
-        .km-domain-tag { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
-        .km-topbar-actions { display: flex; gap: 10px; }
-        .km-top-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; transition: all 0.2s; }
-        .km-top-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        /* SMARTPHONE CONTAINER FRAME */
+        #km-smartphone-frame { width: 100%; max-width: 480px; min-height: 100vh; background: #0b192c; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
+        @media (min-width: 481px) {
+            body { padding-top: 20px; padding-bottom: 110px; background-color: #02050a; }
+            #km-smartphone-frame { border-radius: 36px; min-height: 92vh; border: 4px solid #1e3e62; overflow: hidden; }
+        }
+
+        /* TOP APP BAR */
+        .km-topbar { background: #1e3e62; display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .km-topbar-left { display: flex; align-items: center; gap: 10px; }
+        .km-logo { width: 38px; height: 38px; background: #1565c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .km-brand-name { font-size: 17px; font-weight: 800; color: #4ba3e3; }
+        .km-domain-tag { font-size: 10px; color: rgba(255, 255, 255, 0.7); }
+        .km-topbar-actions { display: flex; gap: 6px; }
+        .km-top-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s; }
         .km-role-btn { background: #ffd700; color: #0b192c; border: none; }
         .km-btn-danger { color: #ff5252; }
 
-        /* MAIN LAYOUT */
-        .km-main-layout { display: flex; flex: 1; }
-
-        /* SIDEBAR */
-        .km-sidebar { width: 240px; background: #000000; padding: 20px 12px; border-right: 1px solid rgba(255, 255, 255, 0.1); }
-        .km-sidebar-brand { padding-bottom: 16px; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .km-sidebar-title { font-size: 18px; font-weight: bold; color: #4ba3e3; }
-        .km-sidebar-sub { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
-        .km-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; cursor: pointer; margin-bottom: 6px; font-size: 14px; color: rgba(255, 255, 255, 0.8); transition: background 0.2s; }
-        .km-menu-item:hover, .km-menu-item-active { background: #1e3e62; color: #ffffff; font-weight: bold; }
-
         /* CONTENT AREA */
-        .km-content { flex: 1; padding: 24px; background: #0b192c; max-width: 1100px; }
+        .km-content { flex: 1; padding: 16px; overflow-y: auto; }
 
         /* POLICY BANNER */
-        .km-policy-banner { background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
-        .km-policy-title { font-size: 15px; font-weight: bold; color: #ffd700; }
-        .km-policy-sub { font-size: 12px; color: rgba(255, 255, 255, 0.85); }
+        .km-policy-banner { background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; }
+        .km-policy-title { font-size: 13px; font-weight: bold; color: #ffd700; }
+        .km-policy-sub { font-size: 11px; color: rgba(255, 255, 255, 0.85); }
 
         /* CARDS & TABLES */
-        .km-card { background: #1e3e62; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        .km-card-title { font-size: 18px; font-weight: bold; color: #4ba3e3; margin-bottom: 14px; }
+        .km-card { background: #1e3e62; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .km-card-title { font-size: 16px; font-weight: bold; color: #4ba3e3; margin-bottom: 12px; }
         .km-song-list { display: flex; flex-direction: column; gap: 8px; }
-        .km-song-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 12px 16px; border-radius: 12px; cursor: pointer; }
+        .km-song-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 10px 12px; border-radius: 12px; cursor: pointer; }
         .km-song-item:hover, .km-song-active { background: rgba(255, 255, 255, 0.15); }
-        .km-song-thumb { width: 44px; height: 44px; background: #1565c0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
-        .km-song-meta { flex: 1; margin-left: 14px; }
-        .km-song-name { font-size: 15px; font-weight: bold; }
-        .km-song-desc { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
+        .km-song-thumb { width: 38px; height: 38px; background: #1565c0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; }
+        .km-song-meta { flex: 1; margin-left: 10px; overflow: hidden; }
+        .km-song-name { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .km-song-desc { font-size: 11px; color: rgba(255, 255, 255, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* FORM ELEMENTS */
-        .km-input, .km-textarea, .km-select { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 13px; margin-bottom: 12px; }
-        .km-textarea { height: 90px; resize: vertical; }
+        .km-input, .km-textarea, .km-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 13px; margin-bottom: 10px; }
+        .km-textarea { height: 80px; resize: vertical; }
         .km-save-btn { width: 100%; background: #ffd700; color: #0d47a1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-        /* BOTTOM PLAYER - UNIFIED & FIXED (ZERO DRIVE URLS EXPOSED) */
-        .km-bottom-player { position: fixed; bottom: 0; left: 0; right: 0; background: #1565c0; border-top: 3px solid #ffd700; box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8); z-index: 99999; height: 85px; display: flex; flex-direction: column; cursor: pointer; }
-        .km-player-progress-bar { height: 5px; background: #ffd700; width: 0%; transition: width 0.2s linear; }
-        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; flex: 1; }
-        .km-player-left { display: flex; align-items: center; gap: 14px; }
-        .km-player-avatar { width: 46px; height: 46px; background: #ffd700; color: #0b192c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-        .km-player-title { font-size: 16px; font-weight: bold; color: #ffffff; }
-        .km-player-artist { font-size: 13px; color: #ffd700; }
-        .km-player-right { display: flex; align-items: center; gap: 12px; }
-        .km-icon-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #ffffff; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .km-play-icon-btn { background: #ffd700; color: #0b192c; width: 50px; height: 50px; font-size: 22px; font-weight: bold; }
+        /* BOTTOM NAV BAR (MOBILE APP STYLE) */
+        .km-bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #000000; border-top: 1px solid rgba(255, 255, 255, 0.15); display: flex; justify-content: space-around; padding: 8px 4px; z-index: 99; }
+        .km-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: rgba(255, 255, 255, 0.6); font-size: 10px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+        .km-nav-item:hover, .km-nav-active { color: #ffd700; font-weight: bold; background: rgba(255,215,0,0.1); }
+        .km-nav-icon { font-size: 18px; }
+
+        /* BOTTOM PLAYER BAR */
+        .km-bottom-player { position: absolute; bottom: 58px; left: 0; right: 0; background: #1565c0; border-top: 2px solid #ffd700; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.6); z-index: 98; height: 64px; display: flex; flex-direction: column; cursor: pointer; }
+        .km-player-progress-bar { height: 4px; background: #ffd700; width: 0%; transition: width 0.2s linear; }
+        .km-player-inner { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; flex: 1; }
+        .km-player-left { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+        .km-player-avatar { width: 36px; height: 36px; background: #ffd700; color: #0b192c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+        .km-player-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .km-player-artist { font-size: 11px; color: #ffd700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .km-player-right { display: flex; align-items: center; gap: 8px; }
+        .km-icon-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #ffffff; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .km-play-icon-btn { background: #ffd700; color: #0b192c; width: 42px; height: 42px; font-size: 18px; font-weight: bold; }
 
         /* MODAL */
-        .km-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); display: none; align-items: center; justify-content: center; z-index: 200; }
-        .km-modal-card { background: #1e3e62; border-radius: 16px; padding: 24px; width: 90%; max-width: 460px; }
-        .km-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .km-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 200; }
+        .km-modal-card { background: #1e3e62; border-radius: 16px; padding: 20px; width: 90%; max-width: 400px; }
+        .km-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .km-modal-close { background: none; border: none; color: #ff5252; font-size: 20px; cursor: pointer; }
         .km-qr-card { background: #ffffff; padding: 12px; border-radius: 12px; text-align: center; }
-        .km-qr-card img { width: 200px; height: 200px; }
-        .km-bank-info { text-align: center; margin-top: 12px; }
-        .km-bank-name { color: #4ba3e3; font-weight: bold; }
-        .km-bank-holder { font-size: 18px; font-weight: bold; }
-        .km-bank-stk { color: #ffd700; font-size: 20px; font-weight: bold; }
-        .km-bank-email { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
-        .km-pay-amount { font-size: 20px; font-weight: bold; color: #ffd700; text-align: center; }
-        .km-pay-memo { font-size: 15px; font-weight: bold; color: #4ba3e3; text-align: center; }
+        .km-qr-card img { width: 180px; height: 180px; }
+        .km-bank-info { text-align: center; margin-top: 10px; }
+        .km-bank-name { color: #4ba3e3; font-weight: bold; font-size: 13px; }
+        .km-bank-holder { font-size: 16px; font-weight: bold; }
+        .km-bank-stk { color: #ffd700; font-size: 18px; font-weight: bold; }
+        .km-pay-amount { font-size: 18px; font-weight: bold; color: #ffd700; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div id="km-app-container">
+    <div id="km-smartphone-frame">
         <!-- TOP APP BAR -->
         <header class="km-topbar">
             <div class="km-topbar-left">
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">Website chính thức: khanhmelodymussic.com • Google Drive Cloud (v2026.10.19-HiddenDriveUrlSecurity)</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Mobile MP3 Edition</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
-                <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Chế độ Thành viên</button>
-                <button class="km-top-btn" id="km-top-share-btn">🌐 Chia sẻ Link</button>
-                <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa trắng</button>
+                <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Thành viên</button>
+                <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa</button>
             </div>
         </header>
 
-        <!-- MAIN LAYOUT -->
-        <div class="km-main-layout">
-            <aside class="km-sidebar">
-                <div class="km-sidebar-brand">
-                    <div class="km-sidebar-title">🎼 Khanh Melody</div>
-                    <div class="km-sidebar-sub" id="km-sidebar-role-tag">👤 Thành viên đăng ký</div>
-                </div>
-                <nav class="km-menu" id="km-menu"></nav>
-            </aside>
+        <!-- CONTENT AREA -->
+        <main class="km-content" id="km-view-container"></main>
 
-            <main class="km-content">
-                <div class="km-policy-banner">
-                    <div class="km-policy-title">🎉 Nghe nhạc KHÔNG GIỚI HẠN (0đ / Miễn Phí) • Đăng ký Thành viên MIỄN PHÍ • Tải nhạc 50.000đ/bài</div>
-                    <div class="km-policy-sub">Thời gian này ứng dụng chưa thu phí nghe nhạc! Thưởng thức toàn bộ bài hát Miễn Phí 100%.</div>
-                </div>
-                <div id="km-view-container"></div>
-            </main>
-        </div>
-
-        <!-- HIDDEN SECURE BACKGROUND AUDIO DECODER ELEMENT (ZERO DRIVE URLS EXPOSED) -->
-        <audio id="km-secure-audio" crossorigin="anonymous" style="display:none;"></audio>
-
-        <!-- BOTTOM PLAYER - UNIFIED & ALWAYS VISIBLE -->
+        <!-- BOTTOM PLAYER BAR -->
         <footer class="km-bottom-player" id="km-bottom-player" onclick="window.KMApp.openFullPlayer()">
             <div class="km-player-progress-bar" id="km-player-progress-bar"></div>
             <div class="km-player-inner">
                 <div class="km-player-left">
                     <div class="km-player-avatar" id="km-player-avatar">🎼</div>
-                    <div class="km-player-song-info">
+                    <div>
                         <div class="km-player-title" id="km-player-title">Chưa chọn bài hát</div>
                         <div class="km-player-artist" id="km-player-artist">Khánh Memory</div>
                     </div>
                 </div>
                 <div class="km-player-right">
-                    <button class="km-icon-btn" id="km-player-like-btn" onclick="event.stopPropagation(); window.KMApp.toggleCurrentLike()" title="Bình chọn yêu thích">❤️ <span id="km-player-like-count">0</span></button>
-                    <button class="km-icon-btn km-play-icon-btn" id="km-player-play-btn" onclick="event.stopPropagation(); window.KMApp.togglePlayPause()" title="Phát/Tạm dừng">▶</button>
-                    <button class="km-icon-btn" id="km-player-next-btn" onclick="event.stopPropagation(); window.KMApp.nextSong()" title="Bài kế tiếp">⏭</button>
+                    <button class="km-icon-btn" id="km-player-like-btn" onclick="event.stopPropagation(); window.KMApp.toggleCurrentLike()" title="Yêu thích">❤️</button>
+                    <button class="km-icon-btn km-play-icon-btn" id="km-player-play-btn" onclick="event.stopPropagation(); window.KMApp.togglePlayPause()" title="Phát/Tạm">▶</button>
+                    <button class="km-icon-btn" id="km-player-next-btn" onclick="event.stopPropagation(); window.KMApp.nextSong()" title="Tiếp">⏭</button>
                 </div>
             </div>
         </footer>
+
+        <!-- BOTTOM NAV BAR (MOBILE APP STYLE) -->
+        <nav class="km-bottom-nav">
+            <div class="km-nav-item km-nav-active" onclick="window.KMApp.selectTab(1)" id="nav-tab-1">
+                <span class="km-nav-icon">🏠</span>
+                <span>Trang chủ</span>
+            </div>
+            <div class="km-nav-item" onclick="window.KMApp.selectTab(2)" id="nav-tab-2">
+                <span class="km-nav-icon">🧭</span>
+                <span>Khám phá</span>
+            </div>
+            <div class="km-nav-item" onclick="window.KMApp.selectTab(3)" id="nav-tab-3">
+                <span class="km-nav-icon">🎧</span>
+                <span>Thư viện</span>
+            </div>
+            <div class="km-nav-item" onclick="window.KMApp.selectTab(7)" id="nav-tab-7">
+                <span class="km-nav-icon">💿</span>
+                <span>Nhóm CD</span>
+            </div>
+            <div class="km-nav-item" onclick="window.KMApp.selectTab(4)" id="nav-tab-4">
+                <span class="km-nav-icon">📤</span>
+                <span>Tải lên</span>
+            </div>
+        </nav>
     </div>
 
-    <!-- FULL PLAYER MODAL - MATCHING SAMSUNG SM-X230 TABLET APP (100% PROTECTED DRIVE URLS) -->
+    <!-- FULL PLAYER MODAL (MOBILE PLAYER SCREEN) -->
     <div class="km-modal-overlay" id="km-full-player-modal" style="display:none; position:fixed; inset:0; background:#0b192c; z-index:999999; flex-direction:column; padding:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <button onclick="window.KMApp.closeFullPlayer()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer; font-weight:bold;">✕ Đang phát - Khanh Melody</button>
-            <div style="font-size:12px; color:#ffd700;">🎼 Samsung SM-X230 Tablet Edition (Protected Cloud Engine)</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <button onclick="window.KMApp.closeFullPlayer()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer; font-weight:bold;">✕ Đang phát</button>
+            <div style="font-size:12px; color:#ffd700;">🎼 Mobile Edition</div>
         </div>
 
-        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; max-width:600px; margin:0 auto; width:100%;">
-            <!-- Big Blue Circle Treble Clef Avatar -->
-            <div style="width:140px; height:140px; background:#1565c0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:64px; box-shadow:0 8px 30px rgba(0,0,0,0.5); margin-bottom:24px;">🎼</div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <div style="width:160px; height:160px; background:#1565c0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:72px; box-shadow:0 10px 35px rgba(0,0,0,0.6); margin-bottom:24px; animation: spin 10s linear infinite;">💿</div>
 
-            <div id="km-fp-title" style="font-size:24px; font-weight:bold; color:#ffffff; margin-bottom:8px;">Chưa chọn bài hát</div>
-            <div id="km-fp-artist" style="font-size:15px; color:rgba(255,255,255,0.7); margin-bottom:14px;">CD: Khanh Melody • Album: Trần Xuân Khánh</div>
+            <div id="km-fp-title" style="font-size:22px; font-weight:bold; color:#ffffff; margin-bottom:8px;">Chưa chọn bài hát</div>
+            <div id="km-fp-artist" style="font-size:14px; color:rgba(255,255,255,0.7); margin-bottom:16px;">CD: Khanh Melody</div>
 
-            <button id="km-fp-like-btn" onclick="window.KMApp.toggleCurrentLike()" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; margin-bottom:30px;">❤️ Đã thêm vào List nhạc của tôi</button>
+            <button id="km-fp-like-btn" onclick="window.KMApp.toggleCurrentLike()" style="background:rgba(255,215,0,0.2); border:1px solid #ffd700; color:#ffd700; padding:8px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; margin-bottom:30px;">❤️ Đã thêm vào List yêu thích</button>
 
             <!-- Progress Bar -->
-            <div style="width:100%; max-width:600px; background:rgba(255,255,255,0.2); height:6px; border-radius:3px; margin-bottom:30px; position:relative; cursor:pointer;" id="km-fp-progress-container">
-                <div id="km-fp-progress-bar" style="width:0%; height:100%; background:#1565c0; border-radius:3px;"></div>
+            <div style="width:100%; max-width:320px; background:rgba(255,255,255,0.2); height:6px; border-radius:3px; margin-bottom:30px;" id="km-fp-progress-container">
+                <div id="km-fp-progress-bar" style="width:0%; height:100%; background:#ffd700; border-radius:3px;"></div>
             </div>
 
-            <!-- 5 Control Buttons Matching Image 2 -->
-            <div style="display:flex; align-items:center; justify-content:center; gap:24px; width:100%; max-width:400px;">
-                <button onclick="window.KMApp.toggleShuffle()" id="km-fp-shuffle-btn" class="km-icon-btn" style="background:rgba(255,215,0,0.2); color:#ffd700;" title="Trộn bài">🔀</button>
-                <button onclick="window.KMApp.prevSong()" class="km-icon-btn" style="background:rgba(255,255,255,0.1); width:50px; height:50px; font-size:20px;" title="Bài trước">⏮</button>
-                <button onclick="window.KMApp.togglePlayPause()" id="km-fp-play-btn" class="km-icon-btn" style="background:#1565c0; color:#ffffff; width:68px; height:68px; font-size:30px; box-shadow:0 4px 15px rgba(21,101,192,0.6);" title="Phát/Tạm dừng">▶</button>
-                <button onclick="window.KMApp.nextSong()" class="km-icon-btn" style="background:rgba(255,255,255,0.1); width:50px; height:50px; font-size:20px;" title="Bài tiếp">⏭</button>
-                <button onclick="window.KMApp.toggleRepeat()" id="km-fp-repeat-btn" class="km-icon-btn" style="background:rgba(255,82,82,0.2); color:#ff5252;" title="Lặp bài">🔁</button>
+            <!-- Controls -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:20px; width:100%; max-width:320px;">
+                <button onclick="window.KMApp.prevSong()" class="km-icon-btn" style="background:rgba(255,255,255,0.1); width:44px; height:44px; font-size:18px;">⏮</button>
+                <button onclick="window.KMApp.togglePlayPause()" id="km-fp-play-btn" class="km-icon-btn" style="background:#ffd700; color:#0b192c; width:64px; height:64px; font-size:28px; font-weight:bold;" title="Phát/Tạm">▶</button>
+                <button onclick="window.KMApp.nextSong()" class="km-icon-btn" style="background:rgba(255,255,255,0.1); width:44px; height:44px; font-size:18px;">⏭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIETQR VIB PAYMENT MODAL (50K DOWNLOAD FEE) -->
+    <div class="km-modal-overlay" id="km-vietqr-modal">
+        <div class="km-modal-card">
+            <div class="km-modal-header">
+                <h3>💳 Thanh Toán Phí Tải Nhạc (50.000đ)</h3>
+                <button class="km-modal-close" id="km-vietqr-close">✕</button>
+            </div>
+            <div class="km-modal-body">
+                <div class="km-qr-card">
+                    <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" />
+                </div>
+                <div class="km-bank-info">
+                    <div class="km-bank-name">VIETQR PAY • VIB (Napas 247)</div>
+                    <div class="km-bank-holder">TRẦN XUÂN KHÁNH</div>
+                    <div class="km-bank-stk">197019779</div>
+                </div>
+                <div class="km-pay-amount">Phí tải MP3: 50.000 VNĐ</div>
+                <button class="km-save-btn" id="km-pay-confirm-btn" style="margin-top:14px;">⚡ Xác nhận Đã chuyển khoản (Tải ngay)</button>
             </div>
         </div>
     </div>
 
     <!-- ADMIN PASSWORD MODAL -->
-    <div class="km-modal-overlay" id="km-admin-pwd-modal" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:300;">
+    <div class="km-modal-overlay" id="km-admin-pwd-modal" style="display:none;">
         <div class="km-modal-card">
-            <h3>🔒 Đăng Nhập Chế Độ Quản Trị Viên (Admin)</h3>
-            <p style="font-size:13px; color:rgba(255,255,255,0.7); margin:8px 0 14px 0;">Vui lòng nhập mật khẩu Admin để tiếp tục (Mật khẩu: 1234)</p>
-            <input type="password" id="km-admin-pwd-input" placeholder="Nhập mật khẩu (1234)" class="km-input" />
-            <div style="display:flex; gap:10px; margin-top:10px;">
+            <h3>🔒 Đăng Nhập Quản Trị Viên (Admin)</h3>
+            <p style="font-size:12px; color:rgba(255,255,255,0.7); margin:6px 0 12px 0;">Nhập mật khẩu Admin (Mật khẩu: 1234)</p>
+            <input type="password" id="km-admin-pwd-input" placeholder="Mật khẩu (1234)" class="km-input" />
+            <div style="display:flex; gap:8px; margin-top:8px;">
                 <button class="km-save-btn" id="km-admin-pwd-submit">Xác nhận</button>
                 <button class="km-top-btn" id="km-admin-pwd-cancel" style="flex:1;">Hủy</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- VIETQR PAYMENT MODAL -->
-    <div class="km-modal-overlay" id="km-vietqr-modal">
-        <div class="km-modal-card">
-            <div class="km-modal-header">
-                <h3>💳 Thanh Toán VietQR (VIB - Napas 247)</h3>
-                <button class="km-modal-close" id="km-vietqr-close">✕</button>
-            </div>
-            <div class="km-modal-body">
-                <div class="km-qr-card">
-                    <img id="km-vietqr-img" src="" alt="Mã QR VietQR VIB" />
-                </div>
-                <div class="km-bank-info">
-                    <div class="km-bank-name">VIETQR PAY • VIB</div>
-                    <div class="km-bank-holder">TRẦN XUÂN KHÁNH</div>
-                    <div class="km-bank-stk">STK VIB: 197019779</div>
-                    <div class="km-bank-email">Email Admin đối soát: khanhbare@gmail.com</div>
-                </div>
-                <div class="km-pay-details">
-                    <div class="km-pay-amount" id="km-pay-amount">Số tiền: 50.000 VNĐ</div>
-                    <div class="km-pay-memo" id="km-pay-memo">Cú pháp CK: KM197019779</div>
-                </div>
-
-                <div class="km-sms-box">
-                    <label>📋 Dán SMS / Thông báo VIB Ngân hàng:</label>
-                    <textarea id="km-sms-input" placeholder="Dán tin nhắn VIB (Ví dụ: +50,000VND GD...)"></textarea>
-                    <button class="km-save-btn" id="km-sms-approve-btn">⚡ Dán & Tự Động Duyệt (1 giây)</button>
-                </div>
             </div>
         </div>
     </div>
@@ -237,63 +227,41 @@
                 currentSongIndex: -1,
                 currentPlayingId: null,
                 isPlaying: false,
-                isShuffle: false,
-                isRepeat: false,
                 songs: [],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
-                    { id: "m2", name: "Lê Thị Hồng", email: "hong.le@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "120.000 VNĐ" },
-                    { id: "m3", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
-                ]
+                    { id: "m2", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
+                ],
+                walletBalance: 100000L // 100k initial balance for testing downloads
             };
 
-            var allMenuItems = [
-                { id: 0, icon: "💳", title: "Ví tiền & Admin", adminOnly: true },
-                { id: 1, icon: "🏠", title: "Trang chủ", adminOnly: false },
-                { id: 2, icon: "🧭", title: "Khám phá", adminOnly: false },
-                { id: 3, icon: "🎧", title: "List nhạc của tôi", adminOnly: false },
-                { id: 7, icon: "💿", title: "Nhóm CD", adminOnly: false },
-                { id: 9, icon: "📲", title: "Cài đặt App / Đăng ký", adminOnly: false },
-                { id: 4, icon: "📤", title: "Tải bài lên", adminOnly: true },
-                { id: 5, icon: "💰", title: "Doanh thu", adminOnly: true },
-                { id: 6, icon: "⚙️", title: "Quản trị bài hát", adminOnly: true },
-                { id: 8, icon: "👥", title: "Quản lý thành viên", adminOnly: true }
-            ];
+            var audio = new Audio();
+            var pendingDownloadSong = null;
 
-            var secureAudio = document.getElementById("km-secure-audio");
+            audio.onplay = function () {
+                state.isPlaying = true;
+                updatePlayerControls();
+            };
 
-            // Native HTML5 Audio Events for Unified State Sync
-            if (secureAudio) {
-                secureAudio.onplay = function () {
-                    state.isPlaying = true;
-                    updatePlayerControls();
-                };
+            audio.onpause = function () {
+                state.isPlaying = false;
+                updatePlayerControls();
+            };
 
-                secureAudio.onpause = function () {
-                    state.isPlaying = false;
-                    updatePlayerControls();
-                };
+            audio.ontimeupdate = function () {
+                if (audio.duration > 0) {
+                    var pct = (audio.currentTime / audio.duration) * 100;
+                    var b1 = document.getElementById("km-player-progress-bar");
+                    var b2 = document.getElementById("km-fp-progress-bar");
+                    if (b1) b1.style.width = pct + "%";
+                    if (b2) b2.style.width = pct + "%";
+                }
+            };
 
-                secureAudio.ontimeupdate = function () {
-                    if (secureAudio.duration > 0) {
-                        var pct = (secureAudio.currentTime / secureAudio.duration) * 100;
-                        var b1 = document.getElementById("km-player-progress-bar");
-                        var b2 = document.getElementById("km-fp-progress-bar");
-                        if (b1) b1.style.width = pct + "%";
-                        if (b2) b2.style.width = pct + "%";
-                    }
-                };
-
-                secureAudio.onended = function () {
-                    state.isPlaying = false;
-                    if (state.isRepeat) {
-                        secureAudio.currentTime = 0;
-                        secureAudio.play().catch(function(){});
-                    } else {
-                        window.KMApp.nextSong(); // Auto-advance to next song seamlessly!
-                    }
-                };
-            }
+            audio.onended = function () {
+                state.isPlaying = false;
+                window.KMApp.nextSong();
+            };
 
             function extractDriveFileId(url) {
                 if (!url) return null;
@@ -301,9 +269,10 @@
                 return (match && match[1]) ? match[1] : null;
             }
 
-            // CONVERT GOOGLE DRIVE URL VIA CORS AUDIO PROXY STREAMER FOR GUARANTEED SOUND (ZERO EXPOSED URLS)
             function convertDriveUrl(url) {
                 if (!url) return "";
+                // If it's a local object URL (file upload), return directly
+                if (url.startsWith("blob:") || url.startsWith("data:")) return url;
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
                     var rawUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
@@ -327,7 +296,7 @@
                         var title2 = document.getElementById("km-fp-title");
                         var artist2 = document.getElementById("km-fp-artist");
                         if (title1) title1.innerText = song.title;
-                        if (artist1) artist1.innerText = song.artist + " • Album: " + song.album;
+                        if (artist1) artist1.innerText = song.artist;
                         if (title2) title2.innerText = song.title;
                         if (artist2) artist2.innerText = "CD: " + (song.cdName || song.artist) + " • Album: " + song.album;
                     }
@@ -336,64 +305,52 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_v11');
+                var saved = localStorage.getItem('km_songs_v12');
                 if (saved) {
                     try {
                         state.songs = JSON.parse(saved);
                     } catch(e) {}
                 }
-                secureAudio = document.getElementById("km-secure-audio");
-                renderSidebar();
                 renderActiveView();
                 bindGlobalEvents();
             }
 
-            function renderSidebar() {
-                var menuEl = document.getElementById("km-menu");
-                var roleTag = document.getElementById("km-sidebar-role-tag");
-                if (!menuEl) return;
-
-                roleTag.innerText = state.isAdmin ? "🛡️ Quản trị viên (Admin)" : "👤 Thành viên đăng ký";
-
-                var visibleItems = allMenuItems.filter(function (item) {
-                    return !item.adminOnly || state.isAdmin;
-                });
-
-                var html = "";
-                visibleItems.forEach(function (item) {
-                    var activeClass = item.id === state.selectedTab ? "km-menu-item-active" : "";
-                    html += `<div class="km-menu-item ${activeClass}" onclick="window.KMApp.selectTab(${item.id})">
-                        <span>${item.icon}</span>
-                        <span>${item.title}</span>
-                    </div>`;
-                });
-                menuEl.innerHTML = html;
+            function updateNavActiveState() {
+                for (var i = 1; i <= 7; i++) {
+                    var tab = document.getElementById("nav-tab-" + i);
+                    if (tab) {
+                        if (i === state.selectedTab) {
+                            tab.classList.add("km-nav-active");
+                        } else {
+                            tab.classList.remove("km-nav-active");
+                        }
+                    }
+                }
             }
 
             function renderActiveView() {
+                updateNavActiveState();
                 var container = document.getElementById("km-view-container");
                 if (!container) return;
 
                 var html = "";
                 switch (state.selectedTab) {
                     case 1:
-                        html = renderMainSongList("🏠 Trang chủ - Nhạc Bản Quyền Đỉnh Cao", state.songs);
+                        html = renderMainSongList("🏠 Trang chủ - Nhạc MP3 & CD", state.songs);
                         break;
                     case 2:
                         html = renderDiscoverView();
                         break;
                     case 3:
                         var myLiked = state.songs.filter(function (s) { return s.isLiked; });
-                        html = renderMainSongList("🎧 List nhạc của tôi (" + myLiked.length + ")", myLiked);
+                        html = renderMainSongList("🎧 Thư viện yêu thích (" + myLiked.length + ")", myLiked);
                         break;
                     case 7:
                         html = renderCdGroupView();
                         break;
                     case 4:
                         if (state.isAdmin) html = renderUploadView();
-                        break;
-                    case 0:
-                        if (state.isAdmin) html = renderAdminWalletView();
+                        else html = renderAppInstallView();
                         break;
                     case 5:
                         if (state.isAdmin) html = renderRevenueView();
@@ -403,9 +360,6 @@
                         break;
                     case 8:
                         if (state.isAdmin) html = renderMemberManagementView();
-                        break;
-                    case 9:
-                        html = renderAppInstallView();
                         break;
                     default:
                         html = renderMainSongList("🏠 Trang chủ", state.songs);
@@ -422,16 +376,15 @@
                         var target = state.selectedCdName.toLowerCase();
                         return cd.indexOf(target) >= 0 || target.indexOf(cd) >= 0;
                     });
-
                     if (cdSongs.length === 0) cdSongs = state.songs;
 
                     return `
                     <div class="km-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                            <div class="km-card-title" style="margin-bottom:0;">💿 Chi tiết Album CD: ${state.selectedCdName} (${cdSongs.length} bài hát)</div>
-                            <button onclick="window.KMApp.clearSelectedCd()" class="km-top-btn" style="background:#ffd700; color:#0b192c;">⬅️ Quay lại danh sách tất cả CD</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div class="km-card-title" style="margin-bottom:0;">💿 Album CD: ${state.selectedCdName} (${cdSongs.length})</div>
+                            <button onclick="window.KMApp.clearSelectedCd()" class="km-top-btn" style="background:#ffd700; color:#0b192c;">⬅️ Quay lại</button>
                         </div>
-                        ${renderMainSongList("Danh sách chi tiết các track bài hát thuộc " + state.selectedCdName, cdSongs)}
+                        ${renderMainSongList("Danh sách bài hát thuộc " + state.selectedCdName, cdSongs)}
                     </div>`;
                 }
 
@@ -447,13 +400,9 @@
                     return `
                     <div class="km-card">
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
-                        <div style="text-align:center; padding: 40px; color:rgba(255,255,255,0.7);">
-                            🎵 Chưa có bài hát hay CD nào trên web!<br/><br/>
-                            👉 <strong>Hướng dẫn dán 5 link CD của bạn</strong>:<br/>
-                            1. Bấm nút <strong>'👤 Chế độ Thành viên'</strong> góc trên cùng phải -> Nhập mật khẩu Admin: <strong>1234</strong><br/>
-                            2. Vào mục <strong>'📤 Tải bài lên'</strong> ở menu bên trái.<br/>
-                            3. Nhập Tên CD (Ví dụ: <strong>Đêm buồn</strong>) và Dán 5 link Google Drive của bạn.<br/>
-                            4. Bấm <strong>'Lưu bài hát'</strong>: Đúng 5 bài hát thật của bạn sẽ xuất hiện ngay lập tức!
+                        <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:13px;">
+                            🎵 Chưa có CD nào!<br/><br/>
+                            👉 Đăng nhập Admin (Mật khẩu: 1234) -> 'Tải lên' để thêm bài hát MP3 hoặc CD!
                         </div>
                     </div>`;
                 }
@@ -462,46 +411,45 @@
                 cdKeys.forEach(function (cdName) {
                     var tracks = cdMap[cdName];
                     cdCardsHtml += `
-                    <div class="km-song-item" onclick="window.KMApp.openCdDetails('${cdName}')" style="margin-bottom:10px; padding:16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,215,0,0.3); border-radius:14px;">
+                    <div class="km-song-item" onclick="window.KMApp.openCdDetails('${cdName}')" style="margin-bottom:8px; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,215,0,0.3); border-radius:12px;">
                         <div class="km-song-thumb" style="background:#ffd700; color:#0b192c;">💿</div>
                         <div class="km-song-meta">
-                            <div class="km-song-name" style="font-size:17px; color:#ffd700;">${cdName}</div>
-                            <div class="km-song-desc">Bấm chọn để xòe mở chi tiết ${tracks.length} bài hát trong CD này</div>
+                            <div class="km-song-name" style="color:#ffd700;">${cdName}</div>
+                            <div class="km-song-desc">${tracks.length} bài hát • Bấm để xem chi tiết</div>
                         </div>
-                        <button class="km-top-btn" style="background:#ffd700; color:#0b192c;">▶ Mở Chi Tiết (${tracks.length} bài)</button>
+                        <button class="km-top-btn" style="background:#ffd700; color:#0b192c;">▶ Mở CD</button>
                     </div>`;
                 });
 
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">💿 Khám phá các Album CD nhạc (${cdKeys.length} CD)</div>
-                    <p style="font-size:13px; color:rgba(255,255,255,0.7); margin-bottom:14px;">Chạm/Bấm vào bất kỳ CD nào bên dưới (Ví dụ: CD Đêm buồn) để xòe mở chi tiết tất cả các bài hát bên trong!</p>
+                    <div class="km-card-title">💿 Các Album CD nhạc (${cdKeys.length})</div>
                     <div>${cdCardsHtml}</div>
                 </div>`;
             }
 
-            // FLAT SONG LIST RENDERER - 100% PROTECTED DRIVE URLS (ZERO EXPOSED LINKS)
+            // FLAT SONG LIST RENDERER WITH DOWNLOAD FEE (50K)
             function renderMainSongList(title, list) {
                 var songsHtml = "";
                 if (list.length === 0) {
                     songsHtml = `
-                    <div style="text-align:center; padding: 40px; color: rgba(255,255,255,0.7);">
+                    <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:13px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Vui lòng đổi sang <strong>Chế độ Admin (Mật khẩu: 1234)</strong> -> Vào mục <strong>'📤 Tải bài lên'</strong> -> Dán 5 link Google Drive của bạn để hiển thị và nghe nhạc!
+                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link Drive!
                     </div>`;
                 } else {
-                    list.forEach(function (song, idx) {
+                    list.forEach(function (song) {
                         var isPlayingThis = (song.id === state.currentPlayingId && state.isPlaying);
                         songsHtml += `
                         <div class="km-song-item ${isPlayingThis ? 'km-song-active' : ''}" onclick="window.KMApp.playSong('${song.id}')">
                             <div class="km-song-thumb" style="${isPlayingThis ? 'background:#ffd700; color:#0b192c;' : ''}">${isPlayingThis ? '🔊' : '🎼'}</div>
                             <div class="km-song-meta">
                                 <div class="km-song-name" style="${isPlayingThis ? 'color:#ffd700;' : ''}">${song.title}</div>
-                                <div class="km-song-desc">${song.artist} • Album: ${song.album} [${song.genre}]</div>
+                                <div class="km-song-desc">${song.artist} • ${song.album}</div>
                             </div>
-                            <button onclick="event.stopPropagation(); window.KMApp.playSong('${song.id}')" class="km-top-btn" style="background:${isPlayingThis ? '#ffd700' : 'rgba(255,215,0,0.25)'}; color:${isPlayingThis ? '#0b192c' : '#ffd700'}; border:1px solid #ffd700; margin-right:8px;">${isPlayingThis ? '⏸ Tạm dừng' : '▶ Phát nhạc'}</button>
-                            <div style="font-size: 13px; margin-right:6px;">${song.isLiked ? '❤️' : '🤍'} ${song.likeCount}</div>
-                            ${state.isAdmin ? `<button onclick="event.stopPropagation(); window.KMApp.deleteSong('${song.id}')" style="background:none; border:none; color:#ff5252; margin-left:6px; cursor:pointer;" title="Xóa vĩnh viễn">🗑️</button>` : ''}
+                            <button onclick="event.stopPropagation(); window.KMApp.playSong('${song.id}')" class="km-top-btn" style="background:${isPlayingThis ? '#ffd700' : 'rgba(255,215,0,0.25)'}; color:${isPlayingThis ? '#0b192c' : '#ffd700'}; border:1px solid #ffd700; margin-right:4px;">${isPlayingThis ? '⏸' : '▶'}</button>
+                            <button onclick="event.stopPropagation(); window.KMApp.requestDownload('${song.id}')" class="km-top-btn" style="background:#1565c0; color:#ffffff; margin-right:4px;" title="Tải MP3 50k">⬇️ 50k</button>
+                            ${state.isAdmin ? `<button onclick="event.stopPropagation(); window.KMApp.deleteSong('${song.id}')" style="background:none; border:none; color:#ff5252; cursor:pointer;" title="Xóa">🗑️</button>` : ''}
                         </div>`;
                     });
                 }
@@ -509,100 +457,57 @@
                 return `
                 <div class="km-card">
                     <div class="km-card-title">${title}</div>
-                    <input type="text" placeholder="🔍 Tìm kiếm bài hát, ca sĩ, album..." class="km-input" id="km-search-input" value="${state.searchQuery}" />
+                    <input type="text" placeholder="🔍 Tìm kiếm bài hát, ca sĩ..." class="km-input" id="km-search-input" value="${state.searchQuery}" />
                     <div class="km-song-list">${songsHtml}</div>
                 </div>`;
             }
 
             function renderDiscoverView() {
-                var genres = ["Tất cả", "Acoustic", "Chill / Lo-Fi", "Pop Ballad", "Nhạc Trẻ", "Instrumental", "Rock", "Reggae", "Blues", "R&B"];
+                var genres = ["Tất cả", "Acoustic", "Chill", "Pop Ballad", "Nhạc Trẻ"];
                 var chipsHtml = genres.map(function(g) {
                     var active = state.selectedGenre === g ? 'background:#ffd700; color:#0b192c; font-weight:bold;' : '';
-                    return `<button onclick="window.KMApp.selectGenre('${g}')" style="padding:6px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:#fff; cursor:pointer; ${active}">${g}</button>`;
+                    return `<button onclick="window.KMApp.selectGenre('${g}')" style="padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:#fff; font-size:12px; cursor:pointer; ${active}">${g}</button>`;
                 }).join(" ");
 
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">🧭 Khám phá Thể loại Nhạc</div>
-                    <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:16px;">${chipsHtml}</div>
-                    ${renderMainSongList("Danh sách theo thể loại '" + state.selectedGenre + "'", state.songs)}
+                    <div class="km-card-title">🧭 Khám Phá Thể Loại</div>
+                    <div style="display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:4px;">${chipsHtml}</div>
+                    ${renderMainSongList("Thể loại: " + state.selectedGenre, state.songs)}
                 </div>`;
             }
 
             function renderUploadView() {
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải bài hát & Lưu CD Google Drive (Admin Only)</div>
-                    <label>Tên CD / Bài hát:</label>
+                    <div class="km-card-title">📤 Tải Bài Hát / MP3 & CD (Admin Only)</div>
+                    <label style="font-size:12px;">Tên bài hát / CD:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
-                    <label>Tên Album:</label>
-                    <input type="text" id="km-up-album" placeholder="Ví dụ: Album Trần Xuân Khánh" class="km-input" />
-                    <label>Dán 5 link Google Drive của bạn (mỗi link 1 dòng hoặc cách nhau khoảng trắng):</label>
-                    <textarea id="km-up-urls" placeholder="https://drive.google.com/file/d/LINK_1/view&#10;https://drive.google.com/file/d/LINK_2/view" class="km-textarea"></textarea>
-                    <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Tạo 5 bài phát nhạc trực tiếp</button>
-                </div>`;
-            }
-
-            function renderAdminWalletView() {
-                return `
+                    <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
+                    <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
+                    <label style="font-size:12px;">Chọn tệp MP3 từ thiết bị:</label>
+                    <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
+                    <label style="font-size:12px;">Hoặc dán Link Google Drive (mỗi link 1 dòng):</label>
+                    <textarea id="km-up-urls" placeholder="https://drive.google.com/..." class="km-textarea"></textarea>
+                    <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát / Tải lên MP3</button>
+                </div>
                 <div class="km-card">
-                    <div class="km-card-title">💳 Ví Doanh Thu & Kho Của Admin (Chủ App)</div>
-                    <p>Tài khoản: <strong>Trần Xuân Khánh (Admin)</strong></p>
-                    <p>Email: <strong>khanhbare@gmail.com</strong></p>
-                    <p style="font-size: 20px; font-weight: bold; color: #ffd700; margin: 10px 0;">Số dư Ví Doanh Thu: 250.000 VNĐ</p>
-
-                    <div style="background: rgba(0,0,0,0.3); border-radius:12px; padding:16px; margin: 16px 0;">
-                        <div style="color:#4ba3e3; font-weight:bold; margin-bottom:6px;">💳 MÃ CHUYỂN KHOẢN VÍ ADMIN (VIETQR VIB)</div>
-                        <p>Ngân hàng: <strong>VIB (Ngân hàng Quốc Tế VIB)</strong></p>
-                        <p>Chủ tài khoản: <strong>TRẦN XUÂN KHÁNH</strong></p>
-                        <p style="font-size: 18px; color:#ffd700; font-weight:bold;">STK VIB: 197019779</p>
-                    </div>
-
-                    <button class="km-save-btn" onclick="window.KMApp.openVietQRModal(50000)">💳 Tạo Mã QR Nạp Tiền VietQR</button>
+                    <div class="km-card-title">💰 Quản Lý Ví Doanh Thu & Số Dư (VIB 197019779)</div>
+                    <p style="font-size:13px; margin-bottom:8px;">Số dư ví hiện tại của bạn: <strong style="color:#ffd700;">${state.walletBalance.toLocaleString()} VNĐ</strong></p>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.7);">Mọi lượt tải nhạc 50.000đ sẽ tự động cộng vào tài khoản VIB: <strong>197019779 - TRẦN XUÂN KHÁNH</strong>.</p>
                 </div>`;
-            }
-
-            function renderRevenueView() {
-                return `
-                <div class="km-card">
-                    <div class="km-card-title">💰 Bảng Doanh Thu Hệ Thống (Admin Only)</div>
-                    <p style="font-size:22px; font-weight:bold; color:#ffd700;">Tổng doanh thu: 250.000 VNĐ</p>
-                    <p>Tổng lượt nghe nhạc: 185 lượt</p>
-                    <p>Tổng lượt tải thương mại: 42 lượt</p>
-                </div>`;
-            }
-
-            function renderSongManagementView() {
-                return renderMainSongList("⚙️ Quản trị bài hát hệ thống (Admin Only)", state.songs);
-            }
-
-            function renderMemberManagementView() {
-                var html = `<div class="km-card"><div class="km-card-title">👥 Quản lý thành viên đăng ký (${state.registeredMembers.length}) (Admin Only)</div>`;
-                state.registeredMembers.forEach(function (m) {
-                    html += `
-                    <div style="background:rgba(255,255,255,0.08); padding:12px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong>${m.name}</strong> (${m.role})<br/>
-                            <small>${m.email} • Ví: ${m.balance} • Trạng thái: ${m.status}</small>
-                        </div>
-                    </div>`;
-                });
-                html += `</div>`;
-                return html;
             }
 
             function renderAppInstallView() {
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📲 Đăng ký Thành viên Khanh Melody</div>
-                    <p style="margin-bottom: 12px; color: rgba(255,255,255,0.85);">Website chính thức: <strong>https://khanhmelodymussic.com</strong> • Khánh Memory</p>
-                    <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px;">
-                        <label>Họ và tên thành viên:</label>
-                        <input type="text" id="km-reg-name" placeholder="Ví dụ: Nguyễn Văn A" class="km-input" />
-                        <label>Địa chỉ Email:</label>
-                        <input type="email" id="km-reg-email" placeholder="Ví dụ: nguyenvana@gmail.com" class="km-input" />
-                        <button class="km-save-btn" onclick="window.KMApp.registerMember()">✨ Bấm Đăng Ký Thành Viên Ngay</button>
-                    </div>
+                    <div class="km-card-title">📲 Đăng Ký Thành Viên Miễn Phí</div>
+                    <p style="font-size:12px; margin-bottom:12px; color:rgba(255,255,255,0.85);">Đăng ký tài khoản để nghe nhạc không giới hạn 0đ và nhận ưu đãi độc quyền từ Khánh Melody.</p>
+                    <label style="font-size:12px;">Họ và tên:</label>
+                    <input type="text" id="km-reg-name" placeholder="Nguyễn Văn A" class="km-input" />
+                    <label style="font-size:12px;">Email:</label>
+                    <input type="email" id="km-reg-email" placeholder="email@gmail.com" class="km-input" />
+                    <button class="km-save-btn" onclick="window.KMApp.registerMember()">✨ Đăng Ký Thành Viên Miễn Phí</button>
                 </div>`;
             }
 
@@ -610,13 +515,13 @@
                 document.getElementById("km-role-toggle-btn").addEventListener("click", function () {
                     if (state.isAdmin) {
                         state.isAdmin = false;
-                        this.innerText = "👤 Chế độ Thành viên";
-                        if (state.selectedTab === 0 || state.selectedTab === 4 || state.selectedTab === 5 || state.selectedTab === 6 || state.selectedTab === 8) {
+                        this.innerText = "👤 Thành viên";
+                        if (state.selectedTab === 4 || state.selectedTab === 5 || state.selectedTab === 6 || state.selectedTab === 8) {
                             state.selectedTab = 1;
                         }
                         renderSidebar();
                         renderActiveView();
-                        alert("Đã chuyển về Chế độ Thành viên 👤");
+                        alert("Đã chuyển về Chế độ Thành viên!");
                     } else {
                         document.getElementById("km-admin-pwd-modal").style.display = "flex";
                     }
@@ -631,34 +536,27 @@
                     var pwd = document.getElementById("km-admin-pwd-input").value.trim();
                     if (pwd === "1234") {
                         state.isAdmin = true;
-                        document.getElementById("km-role-toggle-btn").innerText = "🛡️ Chế độ Admin";
+                        document.getElementById("km-role-toggle-btn").innerText = "🛡️ Admin";
                         document.getElementById("km-admin-pwd-modal").style.display = "none";
                         document.getElementById("km-admin-pwd-input").value = "";
                         renderSidebar();
                         renderActiveView();
-                        alert("Đã chuyển sang Chế độ Quản trị viên (Admin) 🛡️ thành công!");
+                        alert("Đã đăng nhập Chế độ Quản trị viên (Admin) thành công!");
                     } else {
-                        alert("Mật khẩu Admin không đúng! (Mật khẩu mặc định: 1234)");
+                        alert("Mật khẩu Admin không đúng! (Mặc định: 1234)");
                         document.getElementById("km-admin-pwd-input").value = "";
                     }
                 });
 
-                document.getElementById("km-top-share-btn").addEventListener("click", function () {
-                    alert("Đã sao chép liên kết website chính thức: https://khanhmelodymussic.com");
-                });
-
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
-                    if (confirm("Bạn có chắc chắn muốn xóa sạch toàn bộ bài hát khỏi web?")) {
+                    if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_v11', JSON.stringify(state.songs));
-                        if (secureAudio) {
-                            secureAudio.pause();
-                            secureAudio.src = "";
-                        }
+                        localStorage.setItem('km_songs_v12', JSON.stringify(state.songs));
+                        audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
                         renderActiveView();
-                        alert("Đã xóa sạch toàn bộ bài hát vĩnh viễn!");
+                        alert("Đã xóa trắng danh sách bài hát!");
                     }
                 });
 
@@ -666,28 +564,23 @@
                     document.getElementById("km-vietqr-modal").style.display = "none";
                 });
 
-                document.getElementById("km-sms-approve-btn").addEventListener("click", function () {
-                    var sms = document.getElementById("km-sms-input").value.trim();
-                    alert("⚡ Tự động duyệt SMS thành công! Đã cập nhật Ví Admin khanhbare@gmail.com (+50.000 VNĐ).");
-                    document.getElementById("km-vietqr-modal").style.display = "none";
-                });
+                document.getElementById("km-pay-confirm-btn").addEventListener("click", function () {
+                    if (pendingDownloadSong) {
+                        state.walletBalance += 50000;
+                        localStorage.setItem('km_wallet', state.walletBalance);
+                        document.getElementById("km-vietqr-modal").style.display = "none";
+                        alert("⚡ Thanh toán 50.000đ thành công! Đã cộng vào VIB 197019779 - TRẦN XUÂN KHÁNH. Đang tiến hành tải file MP3...");
 
-                // BOTTOM PLAYER CONTROLS (FULLY SYNCED & PROTECTED)
-                document.getElementById("km-player-play-btn").addEventListener("click", function () {
-                    if (!secureAudio) return;
-                    if (state.isPlaying) {
-                        secureAudio.pause();
-                    } else {
-                        if (state.currentPlayingId) {
-                            secureAudio.play().catch(function(){});
-                        } else if (state.songs.length > 0) {
-                            window.KMApp.playSongId(state.songs[0].id);
-                        }
+                        // Trigger file download
+                        var a = document.createElement('a');
+                        a.href = convertDriveUrl(pendingDownloadSong.driveUrl);
+                        a.download = pendingDownloadSong.title + ".mp3";
+                        a.target = "_blank";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        pendingDownloadSong = null;
                     }
-                });
-
-                document.getElementById("km-player-next-btn").addEventListener("click", function () {
-                    window.KMApp.nextSong();
                 });
             }
 
@@ -704,7 +597,6 @@
                 selectTab: function (id) {
                     state.selectedTab = id;
                     state.selectedCdName = null;
-                    renderSidebar();
                     renderActiveView();
                 },
                 openCdDetails: function (cdName) {
@@ -720,54 +612,30 @@
                     renderActiveView();
                 },
                 openFullPlayer: function () {
-                    if (!state.currentPlayingId) {
-                        if (state.songs.length > 0) {
-                            this.playSongId(state.songs[0].id);
-                        } else {
-                            alert("Chưa có bài hát nào để phát!");
-                            return;
-                        }
+                    if (!state.currentPlayingId && state.songs.length > 0) {
+                        this.playSongId(state.songs[0].id);
                     }
                     document.getElementById("km-full-player-modal").style.display = "flex";
                 },
                 closeFullPlayer: function () {
                     document.getElementById("km-full-player-modal").style.display = "none";
                 },
-                toggleShuffle: function () {
-                    state.isShuffle = !state.isShuffle;
-                    var btn = document.getElementById("km-fp-shuffle-btn");
-                    if (btn) btn.style.background = state.isShuffle ? "#ffd700" : "rgba(255,215,0,0.2)";
-                    if (btn) btn.style.color = state.isShuffle ? "#0b192c" : "#ffd700";
-                },
-                toggleRepeat: function () {
-                    state.isRepeat = !state.isRepeat;
-                    var btn = document.getElementById("km-fp-repeat-btn");
-                    if (btn) btn.style.background = state.isRepeat ? "#ff5252" : "rgba(255,82,82,0.2)";
-                    if (btn) btn.style.color = state.isRepeat ? "#ffffff" : "#ff5252";
-                },
-                toggleCurrentLike: function () {
-                    if (!state.currentPlayingId) return;
-                    var song = state.songs.find(function(s){ return s.id === state.currentPlayingId; });
-                    if (song) {
-                        song.isLiked = !song.isLiked;
-                        song.likeCount += song.isLiked ? 1 : -1;
-                        localStorage.setItem('km_songs_v11', JSON.stringify(state.songs));
-                        var likeBtn = document.getElementById("km-fp-like-btn");
-                        if (likeBtn) likeBtn.innerText = song.isLiked ? "❤️ Đã thêm vào List nhạc của tôi" : "🤍 Thêm vào List nhạc của tôi";
-                        renderActiveView();
-                    }
-                },
                 togglePlayPause: function () {
-                    if (!secureAudio) return;
                     if (state.isPlaying) {
-                        secureAudio.pause();
+                        audio.pause();
                     } else {
                         if (state.currentPlayingId) {
-                            secureAudio.play().catch(function(){});
+                            audio.play().catch(function(){});
                         } else if (state.songs.length > 0) {
                             this.playSongId(state.songs[0].id);
                         }
                     }
+                },
+                nextSong: function () {
+                    if (state.songs.length === 0) return;
+                    var curIdx = state.songs.findIndex(function(s){ return s.id === state.currentPlayingId; });
+                    var nextIdx = (curIdx >= 0 && curIdx < state.songs.length - 1) ? curIdx + 1 : 0;
+                    this.playSongId(state.songs[nextIdx].id);
                 },
                 prevSong: function () {
                     if (state.songs.length === 0) return;
@@ -775,24 +643,14 @@
                     var prevIdx = (curIdx > 0) ? curIdx - 1 : state.songs.length - 1;
                     this.playSongId(state.songs[prevIdx].id);
                 },
-                nextSong: function () {
-                    if (state.songs.length === 0) return;
-                    var curIdx = state.songs.findIndex(function(s){ return s.id === state.currentPlayingId; });
-                    var nextIdx = (curIdx >= 0 && curIdx < state.songs.length - 1) ? curIdx + 1 : 0;
-                    if (state.isShuffle) {
-                        nextIdx = Math.floor(Math.random() * state.songs.length);
-                    }
-                    this.playSongId(state.songs[nextIdx].id);
-                },
                 playSongId: function (id) {
                     var idx = state.songs.findIndex(function(s){ return s.id === id; });
                     if (idx < 0) return;
 
                     var song = state.songs[idx];
 
-                    // Toggle play/pause if same song clicked
                     if (state.currentPlayingId === id && state.isPlaying) {
-                        if (secureAudio) secureAudio.pause();
+                        audio.pause();
                         return;
                     }
 
@@ -800,49 +658,22 @@
                     state.currentPlayingId = id;
 
                     var streamUrl = convertDriveUrl(song.driveUrl);
-                    if (secureAudio) {
-                        secureAudio.src = streamUrl;
-                        var promise = secureAudio.play();
-                        if (promise !== undefined) {
-                            promise.then(function() {
-                                state.isPlaying = true;
-                                updatePlayerControls();
-                            }).catch(function(err) {
-                                state.isPlaying = false;
-                                updatePlayerControls();
-                            });
-                        }
-                    }
+                    audio.src = streamUrl;
+                    audio.play().then(function() {
+                        state.isPlaying = true;
+                        updatePlayerControls();
+                    }).catch(function(err) {
+                        alert("Không thể phát file này. Vui lòng kiểm tra lại link hoặc tệp MP3!");
+                    });
                 },
-                playSong: function (idxOrId) {
-                    if (typeof idxOrId === 'string') {
-                        this.playSongId(idxOrId);
-                    } else {
-                        if (state.songs[idxOrId]) {
-                            this.playSongId(state.songs[idxOrId].id);
-                        }
-                    }
+                playSong: function (id) {
+                    this.playSongId(id);
                 },
-                deleteSong: function (id) {
-                    if (!state.isAdmin) {
-                        alert("Chỉ Quản trị viên (Admin) mới có quyền xóa bài hát!");
-                        return;
-                    }
-                    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn bài hát này khỏi web?")) {
-                        if (state.currentPlayingId === id) {
-                            if (secureAudio) {
-                                secureAudio.pause();
-                                secureAudio.src = "";
-                            }
-                            state.isPlaying = false;
-                            state.currentPlayingId = null;
-                        }
-                        state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_v11', JSON.stringify(state.songs));
-                        state.currentSongIndex = -1;
-                        renderActiveView();
-                        alert("Đã xóa vĩnh viễn bài hát khỏi web thành công!");
-                    }
+                requestDownload: function (id) {
+                    var song = state.songs.find(function(s){ return s.id === id; });
+                    if (!song) return;
+                    pendingDownloadSong = song;
+                    document.getElementById("km-vietqr-modal").style.display = "flex";
                 },
                 saveUpload: function () {
                     if (!state.isAdmin) {
@@ -851,10 +682,34 @@
                     }
                     var title = document.getElementById("km-up-title").value.trim();
                     var album = document.getElementById("km-up-album").value.trim();
+                    var fileInput = document.getElementById("km-up-file");
                     var urls = document.getElementById("km-up-urls").value.trim();
 
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                        var file = fileInput.files[0];
+                        var blobUrl = URL.createObjectURL(file);
+                        var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
+                        state.songs.unshift({
+                            id: "s_" + Date.now(),
+                            title: songTitle,
+                            artist: "Tải lên từ thiết bị",
+                            album: album || "Album MP3",
+                            genre: "Acoustic",
+                            category: "Danh sách bài hát hiện hành",
+                            cdName: title || "Nhóm CD",
+                            driveUrl: blobUrl,
+                            likeCount: 1,
+                            isLiked: true
+                        });
+                        localStorage.setItem('km_songs_v12', JSON.stringify(state.songs));
+                        alert("🎉 Đã tải lên và lưu file MP3 '" + songTitle + "' thành công 100%!");
+                        state.selectedTab = 1;
+                        renderActiveView();
+                        return;
+                    }
+
                     if (!urls) {
-                        alert("Vui lòng dán link Google Drive!");
+                        alert("Vui lòng chọn file MP3 hoặc dán link Google Drive!");
                         return;
                     }
 
@@ -862,7 +717,7 @@
                     var foundUrls = urls.match(urlRegex) || [];
 
                     if (foundUrls.length === 0) {
-                        alert("Không tìm thấy đường dẫn Google Drive (https://...) hợp lệ. Vui lòng kiểm tra lại!");
+                        alert("Không tìm thấy đường dẫn hợp lệ!");
                         return;
                     }
 
@@ -883,18 +738,16 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_v11', JSON.stringify(state.songs));
-                    alert("🎉 Đã bóc tách & lưu thành công " + foundUrls.length + " bài hát thật từ CD '" + (title || "CD mới") + "' thành " + foundUrls.length + " hàng ngang phát nhạc trực tiếp!");
+                    localStorage.setItem('km_songs_v12', JSON.stringify(state.songs));
+                    alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
-                    state.selectedCdName = title || "CD mới";
-                    renderSidebar();
                     renderActiveView();
                 },
                 registerMember: function () {
                     var name = document.getElementById("km-reg-name").value.trim();
                     var email = document.getElementById("km-reg-email").value.trim();
                     if (!name || !email) {
-                        alert("Vui lòng nhập đầy đủ Họ tên và Địa chỉ Email!");
+                        alert("Vui lòng nhập đầy đủ Họ tên và Email!");
                         return;
                     }
                     state.registeredMembers.unshift({
@@ -903,16 +756,11 @@
                         email: email,
                         role: "Thành viên",
                         status: "Đang hoạt động",
-                        balance: "50.000 VNĐ"
+                        balance: "0 VNĐ"
                     });
-                    alert("🎉 Chúc mừng " + name + " Đăng ký Thành viên thành công! Tặng Khuyến Mãi 1 Tháng Thuê Bao VIP (Nghe 0đ + 2 Lượt Tải).");
+                    alert("🎉 Chúc mừng " + name + " Đăng ký Thành viên thành công! Nghe nhạc 0đ miễn phí 100%.");
                     document.getElementById("km-reg-name").value = "";
                     document.getElementById("km-reg-email").value = "";
-                },
-                openVietQRModal: function (amount) {
-                    document.getElementById("km-pay-amount").innerText = "Số tiền: " + amount.toLocaleString() + " VNĐ";
-                    document.getElementById("km-vietqr-img").src = "https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=" + amount + "&accountName=TRAN%20XUAN%20KHANH";
-                    document.getElementById("km-vietqr-modal").style.display = "flex";
                 }
             };
 
