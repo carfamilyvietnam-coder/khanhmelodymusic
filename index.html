@@ -6,7 +6,7 @@
     <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Final Cache-Bust Fix v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Force Cache Busting v2026.10.23-PURGE-999)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-FINAL-FIX</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-PURGE-999</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -283,20 +283,23 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_global_v1');
-                if (saved) {
-                    try {
-                        var parsed = JSON.parse(saved);
-                        if (parsed && parsed.length > 0) {
-                            state.songs = parsed.filter(function(s){
-                                var text = (s.title + " " + s.cdName + " " + s.album).toLowerCase();
-                                return text.indexOf("đêm buồn") < 0;
-                            });
-                            localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
-                        }
-                    } catch(e) {}
+                var appVersion = 'v2026.10.23-PURGE-999';
+                var savedVersion = localStorage.getItem('km_app_version');
+                if (savedVersion !== appVersion) {
+                    localStorage.removeItem('km_songs_global_v1');
+                    localStorage.removeItem('km_songs_r2_v1');
+                    localStorage.setItem('km_app_version', appVersion);
+                    state.songs = []; // Clean start, zero sample songs!
                 } else {
-                    state.songs = [];
+                    var saved = localStorage.getItem('km_songs_clean_v2');
+                    if (saved) {
+                        try {
+                            var parsed = JSON.parse(saved);
+                            state.songs = parsed;
+                        } catch(e) {}
+                    } else {
+                        state.songs = [];
+                    }
                 }
                 renderActiveView();
                 bindGlobalEvents();
@@ -611,7 +614,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -747,7 +750,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -781,10 +784,9 @@
                                 likeCount: 1,
                                 isLiked: true
                             });
-                            localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
+                            localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
                             alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                             state.selectedTab = 1;
-                            renderSidebar();
                             renderActiveView();
                         };
                         reader.readAsDataURL(file);
@@ -792,7 +794,7 @@
                     }
 
                     if (!urls) {
-                        alert("Vui lòng chọn file MP3 hoặc dán link Cloudflare R2 / S3 / CDN!");
+                        alert("Vui lòng chọn file MP3 hoặc dán link Google Drive!");
                         return;
                     }
 
@@ -821,10 +823,9 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
-                    renderSidebar();
                     renderActiveView();
                 },
                 registerMember: function () {
