@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "khanh_hit_1",
+    "title": "Xin Cho Tình Yêu (Official Studio Master)",
+    "artist": "Trần Xuân Khánh (Khánh Memory)",
+    "album": "Album Tình Ca Vàng",
+    "genre": "Acoustic",
+    "category": "Danh sách bài hát hiện hành",
+    "cdName": "Xin Cho Tình Yêu",
+    "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "likeCount": 1520,
+    "isLiked": true
+  },
+  {
+    "id": "khanh_hit_2",
+    "title": "Bản Không Tên Số 1 (Acoustic Unplugged)",
+    "artist": "Trần Xuân Khánh (Khánh Memory)",
+    "album": "Album Tình Ca Vàng",
+    "genre": "Acoustic",
+    "category": "Danh sách bài hát hiện hành",
+    "cdName": "Bản Không Tên",
+    "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "likeCount": 1280,
+    "isLiked": true
+  },
+  {
+    "id": "khanh_hit_3",
+    "title": "Tình Ca Vàng Đỉnh Cao (Remix 2026)",
+    "artist": "Trần Xuân Khánh (Khánh Memory)",
+    "album": "Album Tình Ca Vàng",
+    "genre": "Acoustic",
+    "category": "Danh sách bài hát hiện hành",
+    "cdName": "Tình Ca Vàng",
+    "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "likeCount": 2100,
+    "isLiked": true
+  }
+]
