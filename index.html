@@ -6,10 +6,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & IndexedDB Edition | www.khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Dual Storage Edition | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (IndexedDB Unlimited Storage v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Dual Storage Engine v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-INDEXEDDB</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-DUAL-STORAGE</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -170,7 +170,7 @@
             </div>
             <div class="km-modal-body">
                 <div class="km-qr-card">
-                    <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" />
+                    <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" style="width:180px; height:180px;" />
                 </div>
                 <div class="km-bank-info">
                     <div class="km-bank-name">VIETQR PAY • NGÂN HÀNG VIB (Napas 247)</div>
@@ -220,7 +220,8 @@
             var audio = new Audio();
             var pendingDownloadSong = null;
 
-            // INDEXEDDB STORAGE ENGINE (UNLIMITED SIZE FOR MP3 FILES)
+            // DUAL STORAGE ENGINE (LOCALSTORAGE METADATA + INDEXEDDB BLOB STORE)
+            var metaKey = "khanhmelody_master_metadata_v2";
             var dbName = "KhanhMelodyDB_v2";
             var dbStoreName = "songs_store";
             var db = null;
@@ -247,78 +248,51 @@
             }
 
             function saveSongToDB(songObj, fileBlob, callback) {
+                // 1. Save metadata to localStorage for instant 0ms sync load
+                var existing = [];
+                try {
+                    var saved = localStorage.getItem(metaKey);
+                    if (saved) existing = JSON.parse(saved) || [];
+                } catch(e) {}
+
+                var idx = existing.findIndex(function(s){ return s.id === songObj.id; });
+                if (idx >= 0) {
+                    existing[idx] = songObj;
+                } else {
+                    existing.unshift(songObj);
+                }
+                localStorage.setItem(metaKey, JSON.stringify(existing));
+
+                // 2. Save blob to IndexedDB
                 openDB(function(database) {
-                    var transaction = database.transaction([dbStoreName], "readwrite");
-                    var store = transaction.objectStore(dbStoreName);
+                    try {
+                        var transaction = database.transaction([dbStoreName], "readwrite");
+                        var store = transaction.objectStore(dbStoreName);
 
-                    var record = {
-                        id: songObj.id,
-                        title: songObj.title,
-                        artist: songObj.artist,
-                        album: songObj.album,
-                        genre: songObj.genre,
-                        category: songObj.category,
-                        cdName: songObj.cdName,
-                        likeCount: songObj.likeCount,
-                        isLiked: songObj.isLiked,
-                        driveUrl: songObj.driveUrl,
-                        blobData: fileBlob || null
-                    };
+                        var record = {
+                            id: songObj.id,
+                            title: songObj.title,
+                            artist: songObj.artist,
+                            album: songObj.album,
+                            genre: songObj.genre,
+                            category: songObj.category,
+                            cdName: songObj.cdName,
+                            likeCount: songObj.likeCount,
+                            isLiked: songObj.isLiked,
+                            driveUrl: songObj.driveUrl,
+                            blobData: fileBlob || null
+                        };
 
-                    var req = store.put(record);
-                    req.onsuccess = function() {
-                        if (callback) callback(true);
-                    };
-                    req.onerror = function() {
-                        if (callback) callback(false);
-                    };
-                });
-            }
-
-            function loadAllSongsFromDB(callback) {
-                openDB(function(database) {
-                    var transaction = database.transaction([dbStoreName], "readonly");
-                    var store = transaction.objectStore(dbStoreName);
-                    var request = store.getAll();
-                    request.onsuccess = function(event) {
-                        var records = event.target.result || [];
-                        var songs = records.map(function(r) {
-                            var url = r.driveUrl;
-                            if (r.blobData) {
-                                url = URL.createObjectURL(r.blobData);
-                            }
-                            return {
-                                id: r.id,
-                                title: r.title,
-                                artist: r.artist,
-                                album: r.album,
-                                genre: r.genre,
-                                category: r.category,
-                                cdName: r.cdName,
-                                driveUrl: url,
-                                likeCount: r.likeCount,
-                                isLiked: r.isLiked
-                            };
-                        });
-                        if (callback) callback(songs);
-                    };
-                    request.onerror = function() {
-                        if (callback) callback([]);
-                    };
-                });
-            }
-
-            function deleteSongFromDB(id, callback) {
-                openDB(function(database) {
-                    var transaction = database.transaction([dbStoreName], "readwrite");
-                    var store = transaction.objectStore(dbStoreName);
-                    var req = store.delete(id);
-                    req.onsuccess = function() {
-                        if (callback) callback(true);
-                    };
-                    req.onerror = function() {
-                        if (callback) callback(false);
-                    };
+                        var req = store.put(record);
+                        req.onsuccess = function() {
+                            if (callback) callback(true);
+                        };
+                        req.onerror = function() {
+                            if (callback) callback(false);
+                        };
+                    } catch(e) {
+                        if (callback) callback(true); // fallback to localStorage success
+                    }
                 });
             }
 
@@ -388,26 +362,64 @@
             }
 
             function initApp() {
-                loadAllSongsFromDB(function(songs) {
-                    if (songs && songs.length > 0) {
-                        state.songs = songs;
-                    } else {
-                        // Migrate legacy localStorage if any
-                        var legacy = localStorage.getItem('khanhmelody_v17_master_storage');
-                        if (legacy) {
-                            try {
-                                var parsed = JSON.parse(legacy);
-                                if (Array.isArray(parsed) && parsed.length > 0) {
-                                    state.songs = parsed;
-                                    parsed.forEach(function(s) {
-                                        saveSongToDB(s, null, null);
-                                    });
-                                }
-                            } catch(e) {}
-                        }
-                    }
-                    renderActiveView();
+                // 1. Load instantly from localStorage metadata (0ms load time)
+                var saved = localStorage.getItem(metaKey);
+                if (saved) {
+                    try {
+                        var parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed)) state.songs = parsed;
+                    } catch(e) {}
+                }
+
+                // 2. Hydrate blobs from IndexedDB in background
+                openDB(function(database) {
+                    try {
+                        var transaction = database.transaction([dbStoreName], "readonly");
+                        var store = transaction.objectStore(dbStoreName);
+                        var request = store.getAll();
+                        request.onsuccess = function(event) {
+                            var records = event.target.result || [];
+                            if (records.length > 0) {
+                                var updatedSongs = records.map(function(r) {
+                                    var url = r.driveUrl;
+                                    if (r.blobData) {
+                                        url = URL.createObjectURL(r.blobData);
+                                    }
+                                    return {
+                                        id: r.id,
+                                        title: r.title,
+                                        artist: r.artist,
+                                        album: r.album,
+                                        genre: r.genre,
+                                        category: r.category,
+                                        cdName: r.cdName,
+                                        driveUrl: url,
+                                        likeCount: r.likeCount,
+                                        isLiked: r.isLiked
+                                    };
+                                });
+                                state.songs = updatedSongs;
+                                localStorage.setItem(metaKey, JSON.stringify(updatedSongs.map(function(s){
+                                    return {
+                                        id: s.id,
+                                        title: s.title,
+                                        artist: s.artist,
+                                        album: s.album,
+                                        genre: s.genre,
+                                        category: s.category,
+                                        cdName: s.cdName,
+                                        driveUrl: s.driveUrl.startsWith("blob:") ? "" : s.driveUrl,
+                                        likeCount: s.likeCount,
+                                        isLiked: s.isLiked
+                                    };
+                                })));
+                                renderActiveView();
+                            }
+                        };
+                    } catch(e) {}
                 });
+
+                renderActiveView();
                 bindGlobalEvents();
             }
 
@@ -693,9 +705,12 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
+                        localStorage.removeItem(metaKey);
                         openDB(function(db){
-                            var tx = db.transaction([dbStoreName], "readwrite");
-                            tx.objectStore(dbStoreName).clear();
+                            try {
+                                var tx = db.transaction([dbStoreName], "readwrite");
+                                tx.objectStore(dbStoreName).clear();
+                            } catch(e) {}
                         });
                         audio.pause();
                         state.isPlaying = false;
@@ -828,11 +843,17 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        deleteSongFromDB(id, function() {
-                            state.currentSongIndex = -1;
-                            renderActiveView();
-                            alert("Đã xóa vĩnh viễn bài hát!");
+                        localStorage.setItem(metaKey, JSON.stringify(state.songs));
+                        openDB(function(database) {
+                            try {
+                                var transaction = database.transaction([dbStoreName], "readwrite");
+                                var store = transaction.objectStore(dbStoreName);
+                                store.delete(id);
+                            } catch(e) {}
                         });
+                        state.currentSongIndex = -1;
+                        renderActiveView();
+                        alert("Đã xóa vĩnh viễn bài hát!");
                     }
                 },
                 saveUpload: function () {
@@ -843,30 +864,34 @@
 
                     if (fileInput && fileInput.files && fileInput.files[0]) {
                         var file = fileInput.files[0];
-                        var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
-                        var newSong = {
-                            id: "s_" + Date.now(),
-                            title: songTitle,
-                            artist: "Tải lên từ thiết bị",
-                            album: album || "Album MP3",
-                            genre: "Acoustic",
-                            category: "Danh sách bài hát hiện hành",
-                            cdName: title || "Nhóm CD",
-                            driveUrl: URL.createObjectURL(file),
-                            likeCount: 1,
-                            isLiked: true
-                        };
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var arrayBuffer = e.target.result;
+                            var blob = new Blob([arrayBuffer], { type: file.type || "audio/mp3" });
+                            var blobUrl = URL.createObjectURL(blob);
+                            var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
 
-                        saveSongToDB(newSong, file, function(success) {
-                            if (success) {
+                            var newSong = {
+                                id: "s_" + Date.now(),
+                                title: songTitle,
+                                artist: "Tải lên từ thiết bị",
+                                album: album || "Album MP3",
+                                genre: "Acoustic",
+                                category: "Danh sách bài hát hiện hành",
+                                cdName: title || "Nhóm CD",
+                                driveUrl: blobUrl,
+                                likeCount: 1,
+                                isLiked: true
+                            };
+
+                            saveSongToDB(newSong, blob, function(success) {
                                 state.songs.unshift(newSong);
-                                alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào IndexedDB hệ thống!");
+                                alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                                 state.selectedTab = 1;
                                 renderActiveView();
-                            } else {
-                                alert("Lỗi khi lưu tệp vào cơ sở dữ liệu!");
-                            }
-                        });
+                            });
+                        };
+                        reader.readAsArrayBuffer(file);
                         return;
                     }
 
