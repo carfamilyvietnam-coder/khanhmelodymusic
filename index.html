@@ -225,9 +225,16 @@
 
             function shareZalo() {
                 var shareUrl = "https://www.khanhmelodymussic.com";
-                var shareText = "🎼 Nghe Nhạc Bản Quyền Đỉnh Cao - Khánh Memory tại Khanh Melody";
-                var zaloUrl = "https://zalo.me/share?url=" + encodeURIComponent(shareUrl) + "&title=" + encodeURIComponent(shareText);
-                window.open(zaloUrl, '_blank');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(function() {
+                        alert("📋 Đã sao chép đường link website:\nhttps://www.khanhmelodymussic.com\n\nĐang mở Zalo để bạn dán (Ctrl + V) và gửi cho bạn bè!");
+                        window.open("https://chat.zalo.me/", "_blank");
+                    }).catch(function() {
+                        window.open("https://chat.zalo.me/", "_blank");
+                    });
+                } else {
+                    window.open("https://chat.zalo.me/", "_blank");
+                }
             }
 
             function shareApp() {
