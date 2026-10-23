@@ -6,10 +6,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & Admin Pure Audio Edition | www.khanhmelodymussic.com</title>
+    <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Pure Direct HTML5 Audio & Admin Only Upload v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Copyright Music Edition v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • Pure Audio Edition</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Nhạc Bản Quyền Đỉnh Cao</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -215,15 +215,14 @@
                 walletBalance: 100000
             };
 
-            // DIRECT PURE HTML5 AUDIO OBJECT WITH NO CROSS-ORIGIN CONTEXT WRAPPERS
             var audio = new Audio();
             var pendingDownloadSong = null;
 
             function shareApp() {
                 if (navigator.share) {
                     navigator.share({
-                        title: 'Khanh Melody',
-                        text: 'Nghe nhạc MP3 & CD đỉnh cao bản quyền tại Khanh Melody!',
+                        title: 'Khanh Melody - Nhạc Bản Quyền Đỉnh Cao',
+                        text: '🎼 Nghe Nhạc Bản Quyền Đỉnh Cao - Khánh Memory tại https://www.khanhmelodymussic.com',
                         url: 'https://www.khanhmelodymussic.com'
                     }).catch(function() {});
                 } else {
@@ -267,7 +266,6 @@
             }
 
             function saveSongMasterRecord(songObj, callback) {
-                // 1. Dual Backup to LocalStorage
                 try {
                     var existing = [];
                     var saved = localStorage.getItem(masterKey);
@@ -280,7 +278,6 @@
                     localStorage.setItem(masterKey, JSON.stringify(existing));
                 } catch(e) {}
 
-                // 2. Save pure text record to IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         if (callback) callback(true);
@@ -299,7 +296,6 @@
             }
 
             function deleteSongMasterRecord(id, callback) {
-                // Remove from LocalStorage
                 try {
                     var saved = localStorage.getItem(masterKey);
                     if (saved) {
@@ -309,7 +305,6 @@
                     }
                 } catch(e) {}
 
-                // Remove from IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         if (callback) callback(true);
@@ -393,7 +388,6 @@
             }
 
             function initApp() {
-                // 1. First load instantly from LocalStorage
                 var localData = localStorage.getItem(masterKey);
                 if (localData) {
                     try {
@@ -404,7 +398,6 @@
                     } catch(e) {}
                 }
 
-                // 2. Load from IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         renderActiveView();
@@ -438,8 +431,6 @@
                 var navEl = document.getElementById("km-bottom-nav");
                 if (!navEl) return;
 
-                // TABS FOR MEMBERS: [1, 0, 2, 3, 7] (Trang chủ, Ví VIB, Khám phá, Thư viện, Nhóm CD)
-                // TABS FOR ADMINS:  [1, 0, 7, 4, 5] (Trang chủ, Ví VIB, Nhóm CD, Tải lên, Doanh thu)
                 var tabs = state.isAdmin ? [1, 0, 7, 4, 5] : [1, 0, 2, 3, 7];
                 var menuDefs = {
                     1: { icon: "🏠", title: "Trang chủ" },
@@ -562,7 +553,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
+                            👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -595,7 +586,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link R2 / S3!
+                        👉 Đăng nhập <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -615,6 +606,10 @@
                 }
 
                 return `
+                <div class="km-policy-banner">
+                    <div class="km-policy-title">🎼 KHÁNH MELODY - NHẠC BẢN QUYỀN ĐỈNH CAO</div>
+                    <div class="km-policy-sub">Nghe nhạc 0đ miễn phí • Tải MP3 bản quyền chất lượng cao 50.000đ/bài</div>
+                </div>
                 <div class="km-card">
                     <div class="km-card-title">${title}</div>
                     <input type="text" placeholder="🔍 Tìm kiếm bài hát, ca sĩ..." class="km-input" id="km-search-input" value="${state.searchQuery}" />
