@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Mobile MP3 & Permanent Storage Edition | khanhmelodymussic.com</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Permanent Data Recovery & Zero Sample Songs)
+         * Khanh Melody Mobile-First Web Edition (Anti-Cache Ultimate v2026.10.23)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Permanent Storage v2</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-ANTI-CACHE-ULTIMATE</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -167,7 +170,7 @@
             </div>
             <div class="km-modal-body">
                 <div class="km-qr-card">
-                    <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" />
+                    <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" style="width:180px; height:180px;" />
                 </div>
                 <div class="km-bank-info">
                     <div class="km-bank-name">VIETQR PAY • NGÂN HÀNG VIB (Napas 247)</div>
@@ -250,7 +253,7 @@
 
             function convertDriveUrl(url) {
                 if (!url) return "";
-                if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("soundhelix.com")) return url;
+                if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("r2.dev") || url.includes("amazonaws.com") || url.includes("cdn.") || url.includes("soundhelix.com")) return url;
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
                     var rawUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
@@ -283,64 +286,29 @@
             }
 
             function initApp() {
-                var legacyKeys = [
-                    'km_songs_global_v1',
-                    'km_songs_r2_v1',
-                    'km_songs_ambient_v1',
-                    'km_songs_final_v1',
-                    'km_songs_clean_v2',
-                    'km_songs_shortcut_v1',
-                    'km_songs_v11',
-                    'km_songs_v10',
-                    'km_songs_v9',
-                    'km_songs_v8',
-                    'km_songs'
-                ];
-
-                var collectedSongs = [];
-                var seenIds = {};
-
-                legacyKeys.forEach(function(key) {
-                    var saved = localStorage.getItem(key);
+                var appVersion = 'v2026.10.23-ANTICACHE-FINAL';
+                var savedVersion = localStorage.getItem('km_app_version');
+                if (savedVersion !== appVersion) {
+                    localStorage.removeItem('km_songs_global_v1');
+                    localStorage.removeItem('km_songs_r2_v1');
+                    localStorage.removeItem('km_songs_ambient_v1');
+                    localStorage.removeItem('khanhmelody_permanent_songs_v1');
+                    localStorage.setItem('km_app_version', appVersion);
+                    state.songs = []; // Clean start, zero sample songs!
+                } else {
+                    var saved = localStorage.getItem('khanhmelody_permanent_songs_v1');
                     if (saved) {
                         try {
                             var parsed = JSON.parse(saved);
-                            if (Array.isArray(parsed)) {
-                                parsed.forEach(function(s) {
-                                    if (s && s.id && !seenIds[s.id]) {
-                                        var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
-                                        if (text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0) {
-                                            seenIds[s.id] = true;
-                                            collectedSongs.push(s);
-                                        }
-                                    }
-                                });
-                            }
-                        } catch(e) {}
-                    }
-                });
-
-                var permSaved = localStorage.getItem('khanhmelody_permanent_songs_v1');
-                if (permSaved) {
-                    try {
-                        var parsedPerm = JSON.parse(permSaved);
-                        if (Array.isArray(parsedPerm)) {
-                            parsedPerm.forEach(function(s) {
-                                if (s && s.id && !seenIds[s.id]) {
-                                    var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
-                                    if (text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0) {
-                                        seenIds[s.id] = true;
-                                        collectedSongs.push(s);
-                                    }
-                                }
+                            state.songs = parsed.filter(function(s){
+                                var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
+                                return text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0;
                             });
-                        }
-                    } catch(e) {}
+                        } catch(e) {}
+                    } else {
+                        state.songs = [];
+                    }
                 }
-
-                state.songs = collectedSongs;
-                localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
-
                 renderActiveView();
                 bindGlobalEvents();
             }
@@ -504,7 +472,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link Drive!
+                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -547,17 +515,24 @@
             }
 
             function renderUploadView() {
+                var adminAuthBanner = !state.isAdmin ? `
+                <div style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; border-radius:12px; padding:12px; margin-bottom:14px; text-align:center;">
+                    <div style="font-size:13px; font-weight:bold; color:#ffd700;">🔒 Vui lòng đăng nhập Admin để tải bài hát lên</div>
+                    <button onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" class="km-top-btn" style="background:#ffd700; color:#0b192c; margin-top:8px;">🔑 Bấm Đăng Nhập Admin (MK: 1234)</button>
+                </div>` : '';
+
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Không Hạn</div>
+                    ${adminAuthBanner}
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
-                    <label style="font-size:12px;">Chọn file `.mp3` trực tiếp từ thiết bị:</label>
+                    <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
-                    <label style="font-size:12px;">Hoặc dán Link Google Drive (mỗi link 1 dòng):</label>
-                    <textarea id="km-up-urls" placeholder="https://drive.google.com/..." class="km-textarea"></textarea>
+                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN:</label>
+                    <textarea id="km-up-urls" placeholder="https://pub-xxx.r2.dev/song.mp3" class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Đăng lên hệ thống</button>
                 </div>`;
             }
@@ -820,6 +795,7 @@
                             localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
                             alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                             state.selectedTab = 1;
+                            renderSidebar();
                             renderActiveView();
                         };
                         reader.readAsDataURL(file);
@@ -827,7 +803,7 @@
                     }
 
                     if (!urls) {
-                        alert("Vui lòng chọn file MP3 hoặc dán link!");
+                        alert("Vui lòng chọn file MP3 hoặc dán link Cloudflare R2 / S3 / CDN!");
                         return;
                     }
 
