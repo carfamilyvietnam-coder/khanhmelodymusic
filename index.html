@@ -6,10 +6,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & Permanent Audio Engine | www.khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Sound Enhancer Edition | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Permanent Master Audio v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Audio Enhancer EQ & Share Edition v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,10 +97,11 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-PERMANENT-AUDIO-v20</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Audio EQ & Share</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
+                <button class="km-top-btn" id="km-top-share-btn" onclick="window.KMApp.shareApp()" title="Chia sẻ App">🌐 Chia sẻ</button>
                 <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Thành viên</button>
                 <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa</button>
             </div>
@@ -121,7 +122,7 @@
                     </div>
                 </div>
                 <div class="km-player-right">
-                    <button class="km-icon-btn" id="km-player-like-btn" onclick="event.stopPropagation(); window.KMApp.toggleCurrentLike()" title="Yêu thích">❤️</button>
+                    <button class="km-icon-btn" id="km-player-eq-btn" onclick="event.stopPropagation(); window.KMApp.toggleAudioEnhancer()" title="Tối ưu âm thanh EQ" style="background:#ffd700; color:#0b192c; font-weight:bold;">⚡ EQ</button>
                     <button class="km-icon-btn km-play-icon-btn" id="km-player-play-btn" onclick="event.stopPropagation(); window.KMApp.togglePlayPause()" title="Phát/Tạm">▶</button>
                     <button class="km-icon-btn" id="km-player-next-btn" onclick="event.stopPropagation(); window.KMApp.nextSong()" title="Tiếp">⏭</button>
                 </div>
@@ -136,7 +137,7 @@
     <div class="km-modal-overlay" id="km-full-player-modal" style="display:none; position:fixed; inset:0; background:#0b192c; z-index:999999; flex-direction:column; padding:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <button onclick="window.KMApp.closeFullPlayer()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer; font-weight:bold;">✕ Đang phát</button>
-            <div style="font-size:12px; color:#ffd700;">🎼 Mobile Edition</div>
+            <button onclick="window.KMApp.shareApp()" style="background:rgba(255,215,0,0.2); border:1px solid #ffd700; color:#ffd700; padding:6px 14px; border-radius:16px; font-size:12px; font-weight:bold; cursor:pointer;">🌐 Chia sẻ</button>
         </div>
 
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
@@ -145,7 +146,7 @@
             <div id="km-fp-title" style="font-size:22px; font-weight:bold; color:#ffffff; margin-bottom:8px;">Chưa chọn bài hát</div>
             <div id="km-fp-artist" style="font-size:14px; color:rgba(255,255,255,0.7); margin-bottom:16px;">CD: Khanh Melody</div>
 
-            <button id="km-fp-like-btn" onclick="window.KMApp.toggleCurrentLike()" style="background:rgba(255,215,0,0.2); border:1px solid #ffd700; color:#ffd700; padding:8px 18px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; margin-bottom:30px;">❤️ Đã thêm vào List yêu thích</button>
+            <button id="km-fp-eq-btn" onclick="window.KMApp.toggleAudioEnhancer()" style="background:#ffd700; color:#0b192c; border:none; padding:10px 20px; border-radius:20px; font-size:13px; font-weight:bold; cursor:pointer; margin-bottom:20px;">⚡ Đã Bật Chế Độ Âm Thanh Đỉnh Cao (Bass Boost + Treble EQ)</button>
 
             <!-- Progress Bar -->
             <div style="width:100%; max-width:320px; background:rgba(255,255,255,0.2); height:6px; border-radius:3px; margin-bottom:30px;" id="km-fp-progress-container">
@@ -173,7 +174,7 @@
                     <img id="km-vietqr-img" src="https://img.vietqr.io/image/VIB-197019779-compact2.png?amount=50000&accountName=TRAN%20XUAN%20KHANH" alt="Mã QR VietQR VIB Trần Xuân Khánh 197019779" style="width:180px; height:180px;" />
                 </div>
                 <div class="km-bank-info">
-                    <div class="km-bank-name">NGÂN HÀNG VIB (QUỐC TẾ) • NAPAS 247</div>
+                    <div class="km-bank-name">VIETQR PAY • NGÂN HÀNG VIB (Napas 247)</div>
                     <div class="km-bank-holder">TRẦN XUÂN KHÁNH</div>
                     <div class="km-bank-stk">197019779</div>
                 </div>
@@ -220,7 +221,81 @@
             var audio = new Audio();
             var pendingDownloadSong = null;
 
-            // ROCK-SOLID BASE64 TEXT STORAGE ENGINE (LOCALSTORAGE + INDEXEDDB DUAL BACKUP)
+            // WEB AUDIO API SOUND ENHANCER PIPELINE
+            var audioCtx = null;
+            var audioSourceNode = null;
+            var bassFilter = null;
+            var trebleFilter = null;
+            var compressorNode = null;
+            var isEnhancerActive = true;
+
+            function initAudioEnhancer() {
+                if (audioSourceNode) return;
+                try {
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                    audioSourceNode = audioCtx.createMediaElementSource(audio);
+
+                    // 1. LowShelf Filter (Bass Boost: +6dB at 120Hz)
+                    bassFilter = audioCtx.createBiquadFilter();
+                    bassFilter.type = "lowshelf";
+                    bassFilter.frequency.value = 120;
+                    bassFilter.gain.value = 6;
+
+                    // 2. HighShelf Filter (Treble Clarity: +4dB at 3500Hz)
+                    trebleFilter = audioCtx.createBiquadFilter();
+                    trebleFilter.type = "highshelf";
+                    trebleFilter.frequency.value = 3500;
+                    trebleFilter.gain.value = 4;
+
+                    // 3. Dynamics Compressor (Volume Normalizer & Punchy Output)
+                    compressorNode = audioCtx.createDynamicsCompressor();
+                    compressorNode.threshold.value = -18;
+                    compressorNode.knee.value = 25;
+                    compressorNode.ratio.value = 4;
+                    compressorNode.attack.value = 0.003;
+                    compressorNode.release.value = 0.25;
+
+                    audioSourceNode.connect(bassFilter);
+                    bassFilter.connect(trebleFilter);
+                    trebleFilter.connect(compressorNode);
+                    compressorNode.connect(audioCtx.destination);
+                } catch(e) {}
+            }
+
+            function toggleAudioEnhancer() {
+                initAudioEnhancer();
+                isEnhancerActive = !isEnhancerActive;
+                if (bassFilter && trebleFilter) {
+                    if (isEnhancerActive) {
+                        bassFilter.gain.value = 6;
+                        trebleFilter.gain.value = 4;
+                        alert("⚡ Đã BẬT Chế Độ Âm Thanh Đỉnh Cao (Bass sâu + Treble trong)!");
+                    } else {
+                        bassFilter.gain.value = 0;
+                        trebleFilter.gain.value = 0;
+                        alert("⏸ Đã TẮT Chế Độ Âm Thanh Đỉnh Cao (Trả về gốc)!");
+                    }
+                }
+            }
+
+            function shareApp() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Khanh Melody',
+                        text: 'Nghe nhạc MP3 & CD đỉnh cao bản quyền tại Khanh Melody!',
+                        url: 'https://www.khanhmelodymussic.com'
+                    }).catch(function() {});
+                } else {
+                    navigator.clipboard.writeText('https://www.khanhmelodymussic.com').then(function() {
+                        alert("🌐 Đã sao chép liên kết website: https://www.khanhmelodymussic.com");
+                    }).catch(function() {
+                        alert("🌐 Link website: https://www.khanhmelodymussic.com");
+                    });
+                }
+            }
+
+            // BASE64 TEXT STORAGE ENGINE
             var masterKey = "khanhmelody_v20_master";
             var dbName = "KhanhMelodyDB_v20";
             var dbStoreName = "songs_store";
@@ -252,7 +327,6 @@
             }
 
             function saveSongMasterRecord(songObj, callback) {
-                // 1. Dual Backup to LocalStorage
                 try {
                     var existing = [];
                     var saved = localStorage.getItem(masterKey);
@@ -265,7 +339,6 @@
                     localStorage.setItem(masterKey, JSON.stringify(existing));
                 } catch(e) {}
 
-                // 2. Save pure text record to IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         if (callback) callback(true);
@@ -284,7 +357,6 @@
             }
 
             function deleteSongMasterRecord(id, callback) {
-                // Remove from LocalStorage
                 try {
                     var saved = localStorage.getItem(masterKey);
                     if (saved) {
@@ -294,7 +366,6 @@
                     }
                 } catch(e) {}
 
-                // Remove from IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         if (callback) callback(true);
@@ -313,6 +384,7 @@
             }
 
             audio.onplay = function () {
+                initAudioEnhancer();
                 state.isPlaying = true;
                 updatePlayerControls();
             };
@@ -378,7 +450,6 @@
             }
 
             function initApp() {
-                // 1. First load instantly from LocalStorage
                 var localData = localStorage.getItem(masterKey);
                 if (localData) {
                     try {
@@ -389,7 +460,6 @@
                     } catch(e) {}
                 }
 
-                // 2. Load from IndexedDB
                 openDB(function(database) {
                     if (!database) {
                         renderActiveView();
@@ -778,6 +848,12 @@
                 closeFullPlayer: function () {
                     document.getElementById("km-full-player-modal").style.display = "none";
                 },
+                toggleAudioEnhancer: function () {
+                    toggleAudioEnhancer();
+                },
+                shareApp: function () {
+                    shareApp();
+                },
                 togglePlayPause: function () {
                     if (state.isPlaying) {
                         audio.pause();
@@ -858,7 +934,7 @@
                         var file = fileInput.files[0];
                         var reader = new FileReader();
                         reader.onload = function(e) {
-                            var base64Data = e.target.result; // Pure text Base64 String! 100% safe to store in IndexedDB!
+                            var base64Data = e.target.result; // Pure text Base64 Data URL!
                             var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
 
                             var newSong = {
