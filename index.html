@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Shortcut Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Force Cache Busting v2026.10.23-PURGE-999)
+         * Khanh Melody Mobile-First Web Edition (Share & App Shortcut Edition)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 95px; display: flex; justify-content: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 110px; display: flex; justify-content: center; }
 
         /* SMARTPHONE CONTAINER FRAME */
         #km-smartphone-frame { width: 100%; max-width: 480px; min-height: 100vh; background: #0b192c; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
@@ -94,12 +94,13 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-PURGE-999</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Share & Shortcut</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
+                <button class="km-top-btn" id="km-top-share-btn" title="Chia sẻ App">🔗 Chia sẻ</button>
+                <button class="km-top-btn" id="km-top-shortcut-btn" title="Cài Shortcut">📲 Shortcut</button>
                 <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Thành viên</button>
-                <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa</button>
             </div>
         </header>
 
@@ -206,7 +207,20 @@
                 currentSongIndex: -1,
                 currentPlayingId: null,
                 isPlaying: false,
-                songs: [],
+                songs: [
+                    {
+                        id: "s_soundhelix_1",
+                        title: "Đêm buồn (Global Test MP3)",
+                        artist: "Trần Xuân Khánh",
+                        album: "Album Tình Ca Vàng",
+                        genre: "Acoustic",
+                        category: "Danh sách bài hát hiện hành",
+                        cdName: "Đêm buồn",
+                        driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                        likeCount: 152,
+                        isLiked: true
+                    }
+                ],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
@@ -216,6 +230,42 @@
 
             var audio = new Audio();
             var pendingDownloadSong = null;
+            var deferredPrompt = null;
+
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+
+            function shareApp() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Khanh Melody',
+                        text: 'Nghe nhạc MP3 & CD đỉnh cao không giới hạn tại Khanh Melody!',
+                        url: 'https://khanhmelodymussic.com'
+                    }).catch(function() {});
+                } else {
+                    navigator.clipboard.writeText('https://khanhmelodymussic.com').then(function() {
+                        alert("🌐 Đã sao chép liên kết website: https://khanhmelodymussic.com");
+                    }).catch(function() {
+                        alert("🌐 Link website: https://khanhmelodymussic.com");
+                    });
+                }
+            }
+
+            function installShortcut() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function(choiceResult) {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                } else {
+                    alert("📲 Cài đặt Shortcut ra màn hình chính:\n\n• Trên Android / PC (Chrome): Bấm vào dấu 3 chấm góc phải -> Chọn 'Thêm vào màn hình chính' (Add to Home screen) hoặc 'Cài đặt ứng dụng'.\n• Trên iPhone / iPad (Safari): Bấm nút Chia sẻ (Share) -> Chọn 'Thêm vào Màn hình Chính'.");
+                }
+            }
 
             audio.onplay = function () {
                 state.isPlaying = true;
@@ -283,23 +333,12 @@
             }
 
             function initApp() {
-                var appVersion = 'v2026.10.23-PURGE-999';
-                var savedVersion = localStorage.getItem('km_app_version');
-                if (savedVersion !== appVersion) {
-                    localStorage.removeItem('km_songs_global_v1');
-                    localStorage.removeItem('km_songs_r2_v1');
-                    localStorage.setItem('km_app_version', appVersion);
-                    state.songs = []; // Clean start, zero sample songs!
-                } else {
-                    var saved = localStorage.getItem('km_songs_clean_v2');
-                    if (saved) {
-                        try {
-                            var parsed = JSON.parse(saved);
-                            state.songs = parsed;
-                        } catch(e) {}
-                    } else {
-                        state.songs = [];
-                    }
+                var saved = localStorage.getItem('km_songs_shortcut_v1');
+                if (saved) {
+                    try {
+                        var parsed = JSON.parse(saved);
+                        if (parsed && parsed.length > 0) state.songs = parsed;
+                    } catch(e) {}
                 }
                 renderActiveView();
                 bindGlobalEvents();
@@ -357,11 +396,11 @@
                         html = renderCdGroupView();
                         break;
                     case 4:
-                        html = renderUploadView();
+                        if (state.isAdmin) html = renderUploadView();
+                        else html = renderAppInstallView();
                         break;
                     case 5:
                         if (state.isAdmin) html = renderRevenueView();
-                        else html = renderAppInstallView();
                         break;
                     case 6:
                         if (state.isAdmin) html = renderSongManagementView();
@@ -507,21 +546,14 @@
             }
 
             function renderUploadView() {
-                var adminAuthBanner = !state.isAdmin ? `
-                <div style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; border-radius:12px; padding:12px; margin-bottom:14px; text-align:center;">
-                    <div style="font-size:13px; font-weight:bold; color:#ffd700;">🔒 Vui lòng đăng nhập Admin để tải bài hát lên</div>
-                    <button onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" class="km-top-btn" style="background:#ffd700; color:#0b192c; margin-top:8px;">🔑 Bấm Đăng Nhập Admin (MK: 1234)</button>
-                </div>` : '';
-
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Không Hạn</div>
-                    ${adminAuthBanner}
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
-                    <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
+                    <label style="font-size:12px;">Chọn file `.mp3` trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
                     <label style="font-size:12px;">Hoặc dán Link Google Drive (mỗi link 1 dòng):</label>
                     <textarea id="km-up-urls" placeholder="https://drive.google.com/..." class="km-textarea"></textarea>
@@ -614,7 +646,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_shortcut_v1', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -644,6 +676,14 @@
                         pendingDownloadSong = null;
                         renderActiveView();
                     }
+                });
+
+                document.getElementById("km-top-share-btn").addEventListener("click", function () {
+                    shareApp();
+                });
+
+                document.getElementById("km-top-shortcut-btn").addEventListener("click", function () {
+                    installShortcut();
                 });
             }
 
@@ -750,7 +790,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
+                        localStorage.setItem('km_songs_shortcut_v1', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -784,7 +824,7 @@
                                 likeCount: 1,
                                 isLiked: true
                             });
-                            localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
+                            localStorage.setItem('km_songs_shortcut_v1', JSON.stringify(state.songs));
                             alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                             state.selectedTab = 1;
                             renderActiveView();
@@ -794,7 +834,7 @@
                     }
 
                     if (!urls) {
-                        alert("Vui lòng chọn file MP3 hoặc dán link Google Drive!");
+                        alert("Vui lòng chọn file MP3 hoặc dán link!");
                         return;
                     }
 
@@ -823,7 +863,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_clean_v2', JSON.stringify(state.songs));
+                    localStorage.setItem('km_songs_shortcut_v1', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
