@@ -9,7 +9,7 @@
     <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Global Public Song Catalog v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Volume Boost 250% & Noise Filter v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +98,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • Nhạc Bản Quyền Đỉnh Cao</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Vol Boost 250% & Noise Filter</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -263,6 +263,51 @@
             var audio = new Audio();
             var pendingDownloadSong = null;
 
+            // MASTER VOLUME BOOST (250%) & NOISE FILTER ENGINE
+            var audioCtx = null;
+            var sourceNode = null;
+            var gainNode = null;
+            var noiseCutHigh = null;
+            var noiseCutLow = null;
+            var compressor = null;
+
+            function initMasterAudioEngine() {
+                if (sourceNode) return;
+                try {
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                    sourceNode = audioCtx.createMediaElementSource(audio);
+
+                    // 1. Noise Filter (High-pass at 35Hz to eliminate low hum)
+                    noiseCutLow = audioCtx.createBiquadFilter();
+                    noiseCutLow.type = "highpass";
+                    noiseCutLow.frequency.value = 35;
+
+                    // 2. Noise Filter (Low-pass at 15kHz to eliminate high hiss/static)
+                    noiseCutHigh = audioCtx.createBiquadFilter();
+                    noiseCutHigh.type = "lowpass";
+                    noiseCutHigh.frequency.value = 15000;
+
+                    // 3. Master Volume Gain Boost (2.5x / +8dB Volume Boost for loud phone audio)
+                    gainNode = audioCtx.createGain();
+                    gainNode.gain.value = 2.5;
+
+                    // 4. Dynamics Compressor (Prevents distortion/clipping at high volume)
+                    compressor = audioCtx.createDynamicsCompressor();
+                    compressor.threshold.value = -12;
+                    compressor.knee.value = 30;
+                    compressor.ratio.value = 3;
+                    compressor.attack.value = 0.003;
+                    compressor.release.value = 0.25;
+
+                    sourceNode.connect(noiseCutLow);
+                    noiseCutLow.connect(noiseCutHigh);
+                    noiseCutHigh.connect(gainNode);
+                    gainNode.connect(compressor);
+                    compressor.connect(audioCtx.destination);
+                } catch(e) {}
+            }
+
             function shareZalo() {
                 var shareUrl = "https://www.khanhmelodymussic.com";
                 if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -382,6 +427,10 @@
             }
 
             audio.onplay = function () {
+                initMasterAudioEngine();
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 state.isPlaying = true;
                 updatePlayerControls();
             };
@@ -616,7 +665,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc CD mới!
+                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
