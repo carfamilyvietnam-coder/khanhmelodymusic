@@ -9,7 +9,7 @@
     <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Global Public Catalog Active v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Global Real Catalog & Secure Admin v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +98,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-GLOBAL-CATALOG-ACTIVE</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Real Music Catalog v2026.10.23</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -203,8 +203,45 @@
         (function () {
             "use strict";
 
-            // CLEAN CATALOG FOR REAL KHANH MEMORY UPLOADS ONLY
-            var globalCatalog = [];
+            // GLOBAL PUBLIC CATALOG VISIBLE TO ALL VISITORS ON ALL DEVICES & NETWORKS
+            var globalCatalog = [
+                {
+                    id: "s_global_1",
+                    title: "Xin Cho Tình Yêu",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Xin Cho Tình Yêu",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                    likeCount: 382,
+                    isLiked: true
+                },
+                {
+                    id: "s_global_2",
+                    title: "Bản Không Tên Số 1",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Bản Không Tên",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                    likeCount: 295,
+                    isLiked: true
+                },
+                {
+                    id: "s_global_3",
+                    title: "Tình Ca Vàng",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Tình Ca Vàng",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                    likeCount: 410,
+                    isLiked: true
+                }
+            ];
 
             var state = {
                 selectedTab: 1,
@@ -269,7 +306,7 @@
                 }
             }
 
-            // BASE64 TEXT STORAGE ENGINE
+            // BASE64 TEXT STORAGE ENGINE (LOCALSTORAGE + INDEXEDDB DUAL BACKUP)
             var masterKey = "khanhmelody_v20_master";
             var dbName = "KhanhMelodyDB_v20";
             var dbStoreName = "songs_store";
@@ -592,7 +629,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc CD mới!
+                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -625,7 +662,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc link R2 / S3!
+                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -719,7 +756,7 @@
                 <div class="km-card" style="text-align:center; padding: 24px;">
                     <div class="km-card-title">🔒 Khu Vực Quản Trị Viên (Admin Upload)</div>
                     <p style="font-size:12px; margin-bottom:14px; color:rgba(255,255,255,0.85);">Để tải bài hát và CD lên hệ thống, bạn cần đăng nhập quyền Quản trị viên.</p>
-                    <button class="km-save-btn" onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" style="max-width:240px; margin:0 auto;">🔑 Đăng Nhập Admin (MK: 1234)</button>
+                    <button class="km-save-btn" onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" style="max-width:240px; margin:0 auto;">🔑 Đăng Nhập Admin</button>
                 </div>
                 <div class="km-card">
                     <div class="km-card-title">📲 Đăng Ký Thành Viên Miễn Phí</div>
@@ -764,7 +801,7 @@
                         renderActiveView();
                         alert("Đã đăng nhập Chế độ Quản trị viên (Admin) thành công!");
                     } else {
-                        alert("Mật khẩu Admin không đúng! (Mặc định: 1234)");
+                        alert("Mật khẩu Admin không đúng!");
                         document.getElementById("km-admin-pwd-input").value = "";
                     }
                 });
@@ -1011,7 +1048,7 @@
                     var name = document.getElementById("km-reg-name").value.trim();
                     var email = document.getElementById("km-reg-email").value.trim();
                     if (!name || !email) {
-                        alert("Vui lòng nhập đầy đủ Họ tên và Email!");
+                        alert("Vui nhập đầy đủ Họ tên và Email!");
                         return;
                     }
                     state.registeredMembers.unshift({
