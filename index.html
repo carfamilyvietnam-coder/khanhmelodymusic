@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khanh Melody - Mobile MP3 & Ambient Synth Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Permanent Storage Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Ambient Synth Generator Edition)
+         * Khanh Melody Mobile-First Web Edition (Permanent Data Recovery & Zero Sample Songs)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 110px; display: flex; justify-content: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 95px; display: flex; justify-content: center; }
 
         /* SMARTPHONE CONTAINER FRAME */
         #km-smartphone-frame { width: 100%; max-width: 480px; min-height: 100vh; background: #0b192c; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
@@ -94,12 +94,12 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Ambient Synth Edition</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • Permanent Storage v2</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
-                <button class="km-top-btn" id="km-top-share-btn" title="Chia sẻ App">🔗 Chia sẻ</button>
                 <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Thành viên</button>
+                <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa</button>
             </div>
         </header>
 
@@ -206,20 +206,7 @@
                 currentSongIndex: -1,
                 currentPlayingId: null,
                 isPlaying: false,
-                songs: [
-                    {
-                        id: "s_soundhelix_1",
-                        title: "Đêm buồn (Global Test MP3)",
-                        artist: "Trần Xuân Khánh",
-                        album: "Album Tình Ca Vàng",
-                        genre: "Acoustic",
-                        category: "Danh sách bài hát hiện hành",
-                        cdName: "Đêm buồn",
-                        driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                        likeCount: 152,
-                        isLiked: true
-                    }
-                ],
+                songs: [],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
@@ -229,85 +216,6 @@
 
             var audio = new Audio();
             var pendingDownloadSong = null;
-
-            // PROCEDURAL AMBIENT SYNTH GENERATOR (WEB AUDIO API)
-            var ambientCtx = null;
-            var ambientTimer = null;
-            var isAmbientPlaying = false;
-
-            function toggleAmbientSynth() {
-                if (isAmbientPlaying) {
-                    stopAmbientSynth();
-                } else {
-                    startAmbientSynth();
-                }
-            }
-
-            function startAmbientSynth() {
-                try {
-                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                    ambientCtx = new AudioContext();
-                    isAmbientPlaying = true;
-
-                    var btn = document.getElementById("km-ambient-btn");
-                    if (btn) {
-                        btn.innerText = "⏹ Tắt Âm Thanh Thư Giãn";
-                        btn.style.background = "#ff5252";
-                        btn.style.color = "#ffffff";
-                    }
-
-                    var notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-
-                    ambientTimer = setInterval(function() {
-                        if (!isAmbientPlaying || !ambientCtx) return;
-                        var n1 = notes[Math.floor(Math.random() * notes.length)];
-                        var n2 = notes[Math.floor(Math.random() * notes.length)];
-
-                        playTone(n1, 3.5, 0.15);
-                        playTone(n2 * 1.5, 3.5, 0.1);
-                    }, 2000);
-
-                    playTone(261.63, 4.0, 0.2);
-                } catch(e) {
-                    alert("Trình duyệt không hỗ trợ Web Audio API hoặc cần tương tác người dùng!");
-                }
-            }
-
-            function playTone(freq, duration, volume) {
-                if (!ambientCtx) return;
-                try {
-                    var osc = ambientCtx.createOscillator();
-                    var gain = ambientCtx.createGain();
-
-                    osc.type = "sine";
-                    osc.frequency.value = freq;
-
-                    gain.gain.setValueAtTime(0, ambientCtx.currentTime);
-                    gain.gain.linearRampToValueAtTime(volume, ambientCtx.currentTime + 1.0);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, ambientCtx.currentTime + duration);
-
-                    osc.connect(gain);
-                    gain.connect(ambientCtx.destination);
-
-                    osc.start();
-                    osc.stop(ambientCtx.currentTime + duration);
-                } catch(e) {}
-            }
-
-            function stopAmbientSynth() {
-                isAmbientPlaying = false;
-                if (ambientTimer) clearInterval(ambientTimer);
-                if (ambientCtx) {
-                    try { ambientCtx.close(); } catch(e) {}
-                    ambientCtx = null;
-                }
-                var btn = document.getElementById("km-ambient-btn");
-                if (btn) {
-                    btn.innerText = "✨ Bật Âm Thanh Thư Giãn Tự Động (Ambient Synth)";
-                    btn.style.background = "#ffd700";
-                    btn.style.color = "#0d47a1";
-                }
-            }
 
             audio.onplay = function () {
                 state.isPlaying = true;
@@ -375,13 +283,64 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_ambient_v1');
-                if (saved) {
+                var legacyKeys = [
+                    'km_songs_global_v1',
+                    'km_songs_r2_v1',
+                    'km_songs_ambient_v1',
+                    'km_songs_final_v1',
+                    'km_songs_clean_v2',
+                    'km_songs_shortcut_v1',
+                    'km_songs_v11',
+                    'km_songs_v10',
+                    'km_songs_v9',
+                    'km_songs_v8',
+                    'km_songs'
+                ];
+
+                var collectedSongs = [];
+                var seenIds = {};
+
+                legacyKeys.forEach(function(key) {
+                    var saved = localStorage.getItem(key);
+                    if (saved) {
+                        try {
+                            var parsed = JSON.parse(saved);
+                            if (Array.isArray(parsed)) {
+                                parsed.forEach(function(s) {
+                                    if (s && s.id && !seenIds[s.id]) {
+                                        var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
+                                        if (text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0) {
+                                            seenIds[s.id] = true;
+                                            collectedSongs.push(s);
+                                        }
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                });
+
+                var permSaved = localStorage.getItem('khanhmelody_permanent_songs_v1');
+                if (permSaved) {
                     try {
-                        var parsed = JSON.parse(saved);
-                        if (parsed && parsed.length > 0) state.songs = parsed;
+                        var parsedPerm = JSON.parse(permSaved);
+                        if (Array.isArray(parsedPerm)) {
+                            parsedPerm.forEach(function(s) {
+                                if (s && s.id && !seenIds[s.id]) {
+                                    var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
+                                    if (text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0) {
+                                        seenIds[s.id] = true;
+                                        collectedSongs.push(s);
+                                    }
+                                }
+                            });
+                        }
                     } catch(e) {}
                 }
+
+                state.songs = collectedSongs;
+                localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
+
                 renderActiveView();
                 bindGlobalEvents();
             }
@@ -579,16 +538,7 @@
                     return `<button onclick="window.KMApp.selectGenre('${g}')" style="padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:#fff; font-size:12px; cursor:pointer; ${active}">${g}</button>`;
                 }).join(" ");
 
-                var ambientBtnText = isAmbientPlaying ? "⏹ Tắt Âm Thanh Thư Giãn" : "✨ Bật Âm Thanh Thư Giãn Tự Động (Ambient Synth)";
-                var ambientBtnBg = isAmbientPlaying ? "#ff5252" : "#ffd700";
-                var ambientBtnColor = isAmbientPlaying ? "#ffffff" : "#0d47a1";
-
                 return `
-                <div class="km-card" style="text-align:center; padding:20px; background:linear-gradient(135deg, #1e3e62, #1565c0);">
-                    <div class="km-card-title" style="color:#ffd700;">✨ Trình Tạo Âm Thanh Thư Giãn Tự Động</div>
-                    <p style="font-size:12px; margin-bottom:14px; color:rgba(255,255,255,0.9);">Hệ thống tự tổng hợp giai điệu du dương bằng thuật toán Web Audio API giúp bạn thư giãn tuyệt vời!</p>
-                    <button id="km-ambient-btn" onclick="window.KMApp.toggleAmbientSynth()" class="km-save-btn" style="max-width:300px; margin:0 auto; background:${ambientBtnBg}; color:${ambientBtnColor};">${ambientBtnText}</button>
-                </div>
                 <div class="km-card">
                     <div class="km-card-title">🧭 Khám Phá Thể Loại</div>
                     <div style="display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:4px;">${chipsHtml}</div>
@@ -697,7 +647,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.setItem('km_songs_ambient_v1', JSON.stringify(state.songs));
+                        localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -727,10 +677,6 @@
                         pendingDownloadSong = null;
                         renderActiveView();
                     }
-                });
-
-                document.getElementById("km-top-share-btn").addEventListener("click", function () {
-                    shareApp();
                 });
             }
 
@@ -769,9 +715,6 @@
                 },
                 closeFullPlayer: function () {
                     document.getElementById("km-full-player-modal").style.display = "none";
-                },
-                toggleAmbientSynth: function () {
-                    toggleAmbientSynth();
                 },
                 togglePlayPause: function () {
                     if (state.isPlaying) {
@@ -840,7 +783,7 @@
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        localStorage.setItem('km_songs_ambient_v1', JSON.stringify(state.songs));
+                        localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
                         state.currentSongIndex = -1;
                         renderActiveView();
                         alert("Đã xóa vĩnh viễn bài hát!");
@@ -874,10 +817,9 @@
                                 likeCount: 1,
                                 isLiked: true
                             });
-                            localStorage.setItem('km_songs_ambient_v1', JSON.stringify(state.songs));
+                            localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
                             alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                             state.selectedTab = 1;
-                            renderSidebar();
                             renderActiveView();
                         };
                         reader.readAsDataURL(file);
@@ -914,7 +856,7 @@
                         });
                     });
 
-                    localStorage.setItem('km_songs_ambient_v1', JSON.stringify(state.songs));
+                    localStorage.setItem('khanhmelody_permanent_songs_v1', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
