@@ -444,14 +444,45 @@
             }
 
             function initApp() {
-                var localData = localStorage.getItem(masterKey);
-                var localSongs = [];
-                if (localData) {
-                    try {
-                        var parsed = JSON.parse(localData);
-                        if (Array.isArray(parsed)) localSongs = parsed;
-                    } catch(e) {}
+                var legacyKeys = [
+                    masterKey,
+                    'khanhmelody_v17_master_storage',
+                    'khanhmelody_permanent_songs_v1',
+                    'km_songs_r2_v1',
+                    'km_songs_global_v1',
+                    'km_songs_clean_v2',
+                    'km_songs_shortcut_v1',
+                    'km_songs_v11',
+                    'km_songs_v10',
+                    'km_songs_v9',
+                    'km_songs'
+                ];
+
+                var collectedSongs = [];
+                var seenIds = {};
+
+                legacyKeys.forEach(function(key) {
+                    var saved = localStorage.getItem(key);
+                    if (saved) {
+                        try {
+                            var parsed = JSON.parse(saved);
+                            if (Array.isArray(parsed)) {
+                                parsed.forEach(function(s) {
+                                    if (s && s.id && !seenIds[s.id]) {
+                                        seenIds[s.id] = true;
+                                        collectedSongs.push(s);
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                });
+
+                if (collectedSongs.length > 0) {
+                    localStorage.setItem(masterKey, JSON.stringify(collectedSongs));
                 }
+
+                var localSongs = collectedSongs;
 
                 // Fetch songs_db.json from cloud
                 fetch('/songs_db.json?v=' + Date.now()).then(function(res) {
