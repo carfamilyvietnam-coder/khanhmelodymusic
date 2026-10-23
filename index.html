@@ -9,7 +9,7 @@
     <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Copyright Music Edition v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Zalo Share Edition v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,6 +30,7 @@
         .km-domain-tag { font-size: 10px; color: rgba(255, 255, 255, 0.7); }
         .km-topbar-actions { display: flex; gap: 6px; }
         .km-top-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s; }
+        .km-zalo-btn { background: #0068ff; color: #ffffff; border: none; }
         .km-role-btn { background: #ffd700; color: #0b192c; border: none; }
         .km-btn-danger { color: #ff5252; }
 
@@ -101,6 +102,7 @@
                 </div>
             </div>
             <div class="km-topbar-actions">
+                <button class="km-top-btn km-zalo-btn" id="km-top-zalo-btn" onclick="window.KMApp.shareZalo()" title="Chia sẻ Zalo">💬 Zalo</button>
                 <button class="km-top-btn" id="km-top-share-btn" onclick="window.KMApp.shareApp()" title="Chia sẻ App">🌐 Chia sẻ</button>
                 <button class="km-top-btn km-role-btn" id="km-role-toggle-btn">👤 Thành viên</button>
                 <button class="km-top-btn km-btn-danger" id="km-clear-all-btn">🧹 Xóa</button>
@@ -136,7 +138,10 @@
     <div class="km-modal-overlay" id="km-full-player-modal" style="display:none; position:fixed; inset:0; background:#0b192c; z-index:999999; flex-direction:column; padding:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <button onclick="window.KMApp.closeFullPlayer()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer; font-weight:bold;">✕ Đang phát</button>
-            <button onclick="window.KMApp.shareApp()" style="background:rgba(255,215,0,0.2); border:1px solid #ffd700; color:#ffd700; padding:6px 14px; border-radius:16px; font-size:12px; font-weight:bold; cursor:pointer;">🌐 Chia sẻ</button>
+            <div style="display:flex; gap:6px;">
+                <button onclick="window.KMApp.shareZalo()" style="background:#0068ff; border:none; color:#ffffff; padding:6px 14px; border-radius:16px; font-size:12px; font-weight:bold; cursor:pointer;">💬 Zalo</button>
+                <button onclick="window.KMApp.shareApp()" style="background:rgba(255,215,0,0.2); border:1px solid #ffd700; color:#ffd700; padding:6px 14px; border-radius:16px; font-size:12px; font-weight:bold; cursor:pointer;">🌐 Chia sẻ</button>
+            </div>
         </div>
 
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
@@ -217,6 +222,13 @@
 
             var audio = new Audio();
             var pendingDownloadSong = null;
+
+            function shareZalo() {
+                var shareUrl = "https://www.khanhmelodymussic.com";
+                var shareText = "🎼 Nghe Nhạc Bản Quyền Đỉnh Cao - Khánh Memory tại Khanh Melody";
+                var zaloUrl = "https://zalo.me/share?url=" + encodeURIComponent(shareUrl) + "&title=" + encodeURIComponent(shareText);
+                window.open(zaloUrl, '_blank');
+            }
 
             function shareApp() {
                 if (navigator.share) {
@@ -553,7 +565,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc CD mới!
+                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -812,6 +824,9 @@
                 },
                 shareApp: function () {
                     shareApp();
+                },
+                shareZalo: function () {
+                    shareZalo();
                 },
                 togglePlayPause: function () {
                     if (state.isPlaying) {
