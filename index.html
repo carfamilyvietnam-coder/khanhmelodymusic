@@ -6,11 +6,11 @@
     <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Cloudflare R2 & Direct CDN Audio Support)
+         * Khanh Melody Mobile-First Web Edition (Final Cache-Bust Fix v2026.10.23)
          * Domain: khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 110px; display: flex; justify-content: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 95px; display: flex; justify-content: center; }
 
         /* SMARTPHONE CONTAINER FRAME */
         #km-smartphone-frame { width: 100%; max-width: 480px; min-height: 100vh; background: #0b192c; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
@@ -94,7 +94,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • Cloudflare R2 & CDN Edition</div>
+                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-FINAL-FIX</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -209,7 +209,7 @@
                 songs: [
                     {
                         id: "s_soundhelix_1",
-                        title: "Đêm buồn (Cloudflare R2 / CDN Test)",
+                        title: "Đêm buồn (Global Test MP3)",
                         artist: "Trần Xuân Khánh",
                         album: "Album Tình Ca Vàng",
                         genre: "Acoustic",
@@ -261,10 +261,9 @@
                 return (match && match[1]) ? match[1] : null;
             }
 
-            // CLOUDFLARE R2 & DIRECT CDN STREAM RESOLVER
             function convertDriveUrl(url) {
                 if (!url) return "";
-                if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("r2.dev") || url.includes("amazonaws.com") || url.includes("cdn.") || url.includes("soundhelix.com")) return url;
+                if (url.startsWith("blob:") || url.startsWith("data:") || url.endsWith(".mp3") || url.includes("soundhelix.com")) return url;
                 var fileId = extractDriveFileId(url);
                 if (fileId) {
                     var rawUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
@@ -297,7 +296,7 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_r2_v1');
+                var saved = localStorage.getItem('km_songs_final_v1');
                 if (saved) {
                     try {
                         var parsed = JSON.parse(saved);
@@ -360,11 +359,11 @@
                         html = renderCdGroupView();
                         break;
                     case 4:
-                        if (state.isAdmin) html = renderUploadView();
-                        else html = renderAppInstallView();
+                        html = renderUploadView();
                         break;
                     case 5:
                         if (state.isAdmin) html = renderRevenueView();
+                        else html = renderAppInstallView();
                         break;
                     case 6:
                         if (state.isAdmin) html = renderSongManagementView();
@@ -434,7 +433,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Đăng nhập Admin (MK: 1234) -> Vào 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
+                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -467,7 +466,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link Drive!
+                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link Drive!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -510,17 +509,24 @@
             }
 
             function renderUploadView() {
+                var adminAuthBanner = !state.isAdmin ? `
+                <div style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; border-radius:12px; padding:12px; margin-bottom:14px; text-align:center;">
+                    <div style="font-size:13px; font-weight:bold; color:#ffd700;">🔒 Vui lòng đăng nhập Admin để tải bài hát lên</div>
+                    <button onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" class="km-top-btn" style="background:#ffd700; color:#0b192c; margin-top:8px;">🔑 Bấm Đăng Nhập Admin (MK: 1234)</button>
+                </div>` : '';
+
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Không Hạn</div>
+                    ${adminAuthBanner}
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
-                    <label style="font-size:12px;">Chọn file `.mp3` trực tiếp từ thiết bị:</label>
+                    <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
-                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN / Google Drive:</label>
-                    <textarea id="km-up-urls" placeholder="https://pub-xxx.r2.dev/song.mp3" class="km-textarea"></textarea>
+                    <label style="font-size:12px;">Hoặc dán Link Google Drive (mỗi link 1 dòng):</label>
+                    <textarea id="km-up-urls" placeholder="https://drive.google.com/..." class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Đăng lên hệ thống</button>
                 </div>`;
             }
@@ -783,6 +789,7 @@
                             localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
                             alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
                             state.selectedTab = 1;
+                            renderSidebar();
                             renderActiveView();
                         };
                         reader.readAsDataURL(file);
@@ -822,6 +829,7 @@
                     localStorage.setItem('km_songs_r2_v1', JSON.stringify(state.songs));
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
+                    renderSidebar();
                     renderActiveView();
                 },
                 registerMember: function () {
