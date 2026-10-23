@@ -6,10 +6,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & Sound Output Fixed Edition | www.khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Admin Pure Audio Edition | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Sound Output Fixed v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Pure Direct HTML5 Audio & Admin Only Upload v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • Sound Fixed v2026.10.23</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Pure Audio Edition</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -215,8 +215,8 @@
                 walletBalance: 100000
             };
 
+            // DIRECT PURE HTML5 AUDIO OBJECT WITH NO CROSS-ORIGIN CONTEXT WRAPPERS
             var audio = new Audio();
-            audio.crossOrigin = "anonymous"; // Enable crossOrigin for direct HTML5 sound output
             var pendingDownloadSong = null;
 
             function shareApp() {
@@ -438,10 +438,14 @@
                 var navEl = document.getElementById("km-bottom-nav");
                 if (!navEl) return;
 
-                var tabs = [1, 0, 7, 4, 5];
+                // TABS FOR MEMBERS: [1, 0, 2, 3, 7] (Trang chủ, Ví VIB, Khám phá, Thư viện, Nhóm CD)
+                // TABS FOR ADMINS:  [1, 0, 7, 4, 5] (Trang chủ, Ví VIB, Nhóm CD, Tải lên, Doanh thu)
+                var tabs = state.isAdmin ? [1, 0, 7, 4, 5] : [1, 0, 2, 3, 7];
                 var menuDefs = {
                     1: { icon: "🏠", title: "Trang chủ" },
                     0: { icon: "💳", title: "Ví VIB" },
+                    2: { icon: "🧭", title: "Khám phá" },
+                    3: { icon: "🎧", title: "Thư viện" },
                     7: { icon: "💿", title: "Nhóm CD" },
                     4: { icon: "📤", title: "Tải lên" },
                     5: { icon: "💰", title: "Doanh thu" }
@@ -484,16 +488,17 @@
                         html = renderCdGroupView();
                         break;
                     case 4:
-                        html = renderUploadView();
+                        if (state.isAdmin) html = renderUploadView();
+                        else html = renderAppInstallView();
                         break;
                     case 5:
-                        html = renderRevenueView();
+                        if (state.isAdmin) html = renderRevenueView();
                         break;
                     case 6:
-                        html = renderSongManagementView();
+                        if (state.isAdmin) html = renderSongManagementView();
                         break;
                     case 8:
-                        html = renderMemberManagementView();
+                        if (state.isAdmin) html = renderMemberManagementView();
                         break;
                     default:
                         html = renderMainSongList("🏠 Trang chủ", state.songs);
@@ -557,7 +562,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm bài hát MP3 hoặc CD mới!
+                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -590,7 +595,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link R2 / S3!
+                        👉 Chuyển sang <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -604,7 +609,7 @@
                             </div>
                             <button onclick="event.stopPropagation(); window.KMApp.playSong('${song.id}')" class="km-top-btn" style="background:${isPlayingThis ? '#ffd700' : 'rgba(255,215,0,0.25)'}; color:${isPlayingThis ? '#0b192c' : '#ffd700'}; border:1px solid #ffd700; margin-right:4px;" title="Phát nhạc">${isPlayingThis ? '⏸ Đang phát' : '▶ Phát nhạc'}</button>
                             <button onclick="event.stopPropagation(); window.KMApp.requestDownload('${song.id}')" class="km-top-btn" style="background:#1565c0; color:#ffffff; border:1px solid #4ba3e3; margin-right:4px;" title="Tải MP3 50k">⬇️ 50k</button>
-                            <button onclick="event.stopPropagation(); window.KMApp.deleteSong('${song.id}')" style="background:none; border:none; color:#ff5252; cursor:pointer;" title="Xóa">🗑️</button>
+                            ${state.isAdmin ? `<button onclick="event.stopPropagation(); window.KMApp.deleteSong('${song.id}')" style="background:none; border:none; color:#ff5252; cursor:pointer;" title="Xóa">🗑️</button>` : ''}
                         </div>`;
                     });
                 }
@@ -635,14 +640,14 @@
             function renderUploadView() {
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Không Hạn</div>
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
                     <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
-                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN:</label>
+                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN / Google Drive:</label>
                     <textarea id="km-up-urls" placeholder="https://pub-xxx.r2.dev/song.mp3" class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Đăng lên hệ thống</button>
                 </div>`;
@@ -676,7 +681,21 @@
             }
 
             function renderAppInstallView() {
-                return renderUploadView();
+                return `
+                <div class="km-card" style="text-align:center; padding: 24px;">
+                    <div class="km-card-title">🔒 Khu Vực Quản Trị Viên (Admin Upload)</div>
+                    <p style="font-size:12px; margin-bottom:14px; color:rgba(255,255,255,0.85);">Để tải bài hát và CD lên hệ thống, bạn cần đăng nhập quyền Quản trị viên.</p>
+                    <button class="km-save-btn" onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" style="max-width:240px; margin:0 auto;">🔑 Đăng Nhập Admin (MK: 1234)</button>
+                </div>
+                <div class="km-card">
+                    <div class="km-card-title">📲 Đăng Ký Thành Viên Miễn Phí</div>
+                    <p style="font-size:12px; margin-bottom:12px; color:rgba(255,255,255,0.85);">Đăng ký tài khoản miễn phí để nghe nhạc không giới hạn 0đ từ Khánh Melody.</p>
+                    <label style="font-size:12px;">Họ và tên:</label>
+                    <input type="text" id="km-reg-name" placeholder="Nguyễn Văn A" class="km-input" />
+                    <label style="font-size:12px;">Email:</label>
+                    <input type="email" id="km-reg-email" placeholder="email@gmail.com" class="km-input" />
+                    <button class="km-save-btn" onclick="window.KMApp.registerMember()">✨ Đăng Ký Thành Viên Miễn Phí</button>
+                </div>`;
             }
 
             function bindGlobalEvents() {
@@ -684,6 +703,9 @@
                     if (state.isAdmin) {
                         state.isAdmin = false;
                         this.innerText = "👤 Thành viên";
+                        if (state.selectedTab === 4 || state.selectedTab === 5 || state.selectedTab === 6 || state.selectedTab === 8) {
+                            state.selectedTab = 1;
+                        }
                         renderSidebar();
                         renderActiveView();
                         alert("Đã chuyển về Chế độ Thành viên!");
@@ -852,6 +874,10 @@
                     document.getElementById("km-vietqr-modal").style.display = "flex";
                 },
                 deleteSong: function (id) {
+                    if (!state.isAdmin) {
+                        alert("Chỉ Quản trị viên (Admin) mới có quyền xóa bài hát!");
+                        return;
+                    }
                     if (confirm("Xóa vĩnh viễn bài hát này khỏi web?")) {
                         if (state.currentPlayingId === id) {
                             audio.pause();
@@ -867,6 +893,10 @@
                     }
                 },
                 saveUpload: function () {
+                    if (!state.isAdmin) {
+                        alert("Chỉ Quản trị viên (Admin) mới có quyền tải bài hát lên!");
+                        return;
+                    }
                     var title = document.getElementById("km-up-title").value.trim();
                     var album = document.getElementById("km-up-album").value.trim();
                     var fileInput = document.getElementById("km-up-file");
@@ -876,7 +906,7 @@
                         var file = fileInput.files[0];
                         var reader = new FileReader();
                         reader.onload = function(e) {
-                            var base64Data = e.target.result; // Pure text Base64 String! 100% safe to store in IndexedDB!
+                            var base64Data = e.target.result;
                             var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
 
                             var newSong = {
