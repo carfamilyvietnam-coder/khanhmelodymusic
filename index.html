@@ -6,11 +6,11 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & Admin Edition | khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & Admin Edition | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Anti-Cache Ultimate v2026.10.23)
-         * Domain: khanhmelodymussic.com
+         * Khanh Melody Mobile-First Web Edition (WWW Domain Update v2026.10.23)
+         * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #050b14; color: #ffffff; line-height: 1.5; padding-bottom: 95px; display: flex; justify-content: center; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">khanhmelodymussic.com • v2026.10.23-ANTI-CACHE-ULTIMATE</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-WWWFIX</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -286,28 +286,14 @@
             }
 
             function initApp() {
-                var appVersion = 'v2026.10.23-ANTICACHE-FINAL';
-                var savedVersion = localStorage.getItem('km_app_version');
-                if (savedVersion !== appVersion) {
-                    localStorage.removeItem('km_songs_global_v1');
-                    localStorage.removeItem('km_songs_r2_v1');
-                    localStorage.removeItem('km_songs_ambient_v1');
-                    localStorage.removeItem('khanhmelody_permanent_songs_v1');
-                    localStorage.setItem('km_app_version', appVersion);
-                    state.songs = []; // Clean start, zero sample songs!
+                var permSaved = localStorage.getItem('khanhmelody_permanent_songs_v1');
+                if (permSaved) {
+                    try {
+                        var parsed = JSON.parse(permSaved);
+                        if (Array.isArray(parsed)) state.songs = parsed;
+                    } catch(e) {}
                 } else {
-                    var saved = localStorage.getItem('khanhmelody_permanent_songs_v1');
-                    if (saved) {
-                        try {
-                            var parsed = JSON.parse(saved);
-                            state.songs = parsed.filter(function(s){
-                                var text = (s.title + " " + (s.cdName || "") + " " + s.album).toLowerCase();
-                                return text.indexOf("đêm buồn") < 0 && text.indexOf("soundhelix") < 0;
-                            });
-                        } catch(e) {}
-                    } else {
-                        state.songs = [];
-                    }
+                    state.songs = [];
                 }
                 renderActiveView();
                 bindGlobalEvents();
@@ -515,23 +501,16 @@
             }
 
             function renderUploadView() {
-                var adminAuthBanner = !state.isAdmin ? `
-                <div style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; border-radius:12px; padding:12px; margin-bottom:14px; text-align:center;">
-                    <div style="font-size:13px; font-weight:bold; color:#ffd700;">🔒 Vui lòng đăng nhập Admin để tải bài hát lên</div>
-                    <button onclick="document.getElementById('km-admin-pwd-modal').style.display='flex'" class="km-top-btn" style="background:#ffd700; color:#0b192c; margin-top:8px;">🔑 Bấm Đăng Nhập Admin (MK: 1234)</button>
-                </div>` : '';
-
                 return `
                 <div class="km-card">
-                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD Không Hạn</div>
-                    ${adminAuthBanner}
+                    <div class="km-card-title">📤 Tải Bài Hát MP3 & CD (Admin Only)</div>
                     <label style="font-size:12px;">Tên CD / Bài hát:</label>
                     <input type="text" id="km-up-title" placeholder="Ví dụ: Đêm buồn" class="km-input" />
                     <label style="font-size:12px;">Tên Album / Ca sĩ:</label>
                     <input type="text" id="km-up-album" placeholder="Ví dụ: Trần Xuân Khánh" class="km-input" />
-                    <label style="font-size:12px;">Chọn file .mp3 trực tiếp từ thiết bị:</label>
+                    <label style="font-size:12px;">Chọn file `.mp3` trực tiếp từ thiết bị:</label>
                     <input type="file" id="km-up-file" accept="audio/mp3,audio/*" class="km-input" style="padding:6px;" />
-                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN:</label>
+                    <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN / Google Drive:</label>
                     <textarea id="km-up-urls" placeholder="https://pub-xxx.r2.dev/song.mp3" class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Đăng lên hệ thống</button>
                 </div>`;
