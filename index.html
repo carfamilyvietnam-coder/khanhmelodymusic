@@ -203,6 +203,45 @@
         (function () {
             "use strict";
 
+            var globalCatalog = [
+                {
+                    id: "khanh_song_1",
+                    title: "Đêm buồn",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Tình Ca Vàng",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Đêm buồn",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                    likeCount: 500,
+                    isLiked: true
+                },
+                {
+                    id: "khanh_song_2",
+                    title: "Bản Không Tên Số 1",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Tình Ca Vàng",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Bản Không Tên",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                    likeCount: 420,
+                    isLiked: true
+                },
+                {
+                    id: "khanh_song_3",
+                    title: "Xin Cho Tình Yêu",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Tình Ca Vàng",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Xin Cho Tình Yêu",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                    likeCount: 610,
+                    isLiked: true
+                }
+            ];
+
             var state = {
                 selectedTab: 1,
                 isAdmin: false,
@@ -394,6 +433,7 @@
 
             function mergeAndRenderSongs(localSongs, dbRecords, cloudSongs) {
                 var map = {};
+                if (Array.isArray(globalCatalog)) globalCatalog.forEach(function(s){ map[s.id] = s; });
                 if (Array.isArray(cloudSongs)) cloudSongs.forEach(function(s){ map[s.id] = s; });
                 if (Array.isArray(localSongs)) localSongs.forEach(function(s){ map[s.id] = s; });
                 if (Array.isArray(dbRecords)) dbRecords.forEach(function(s){ map[s.id] = s; });
