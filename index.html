@@ -242,18 +242,31 @@
             }
 
             function shareApp() {
+                var shareUrl = "https://www.khanhmelodymussic.com";
+                var shareText = "🎼 Nghe Nhạc Bản Quyền Đỉnh Cao - Khánh Memory";
+
                 if (navigator.share) {
                     navigator.share({
-                        title: 'Khanh Melody - Nhạc Bản Quyền Đỉnh Cao',
-                        text: '🎼 Nghe Nhạc Bản Quyền Đỉnh Cao - Khánh Memory tại https://www.khanhmelodymussic.com',
-                        url: 'https://www.khanhmelodymussic.com'
-                    }).catch(function() {});
-                } else {
-                    navigator.clipboard.writeText('https://www.khanhmelodymussic.com').then(function() {
-                        alert("🌐 Đã sao chép liên kết website: https://www.khanhmelodymussic.com");
+                        title: 'Khanh Melody',
+                        text: shareText,
+                        url: shareUrl
                     }).catch(function() {
-                        alert("🌐 Link website: https://www.khanhmelodymussic.com");
+                        fallbackShare(shareUrl);
                     });
+                } else {
+                    fallbackShare(shareUrl);
+                }
+            }
+
+            function fallbackShare(shareUrl) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(function() {
+                        alert("🌐 Đã sao chép liên kết website:\nhttps://www.khanhmelodymussic.com\n\nBạn có thể dán (Ctrl + V) để gửi cho bạn bè ngay lập tức!");
+                    }).catch(function() {
+                        prompt("🌐 Sao chép đường link website Khánh Melody để chia sẻ:", shareUrl);
+                    });
+                } else {
+                    prompt("🌐 Sao chép đường link website Khánh Melody để chia sẻ:", shareUrl);
                 }
             }
 
