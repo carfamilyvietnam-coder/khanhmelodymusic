@@ -1,38 +1,14 @@
 [
   {
-    "id": "khanh_official_1",
-    "title": "Xin Cho Tình Yêu (Bản Quyền Chính Thức)",
-    "artist": "Trần Xuân Khánh",
-    "album": "Album Tình Ca Vàng",
+    "id": "khanh_official_welcome",
+    "title": "🎼 Khánh Melody - Bản Quyền Chính Thức",
+    "artist": "Trần Xuân Khánh (Khánh Memory)",
+    "album": "Album Bản Quyền Vàng",
     "genre": "Acoustic",
     "category": "Danh sách bài hát hiện hành",
-    "cdName": "Xin Cho Tình Yêu",
+    "cdName": "Khánh Melody Official",
     "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "likeCount": 1250,
-    "isLiked": true
-  },
-  {
-    "id": "khanh_official_2",
-    "title": "Bản Không Tên Số 1 (Bản Quyền Chính Thức)",
-    "artist": "Trần Xuân Khánh",
-    "album": "Album Tình Ca Vàng",
-    "genre": "Acoustic",
-    "category": "Danh sách bài hát hiện hành",
-    "cdName": "Bản Không Tên",
-    "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "likeCount": 980,
-    "isLiked": true
-  },
-  {
-    "id": "khanh_official_3",
-    "title": "Tình Ca Vàng Đỉnh Cao",
-    "artist": "Trần Xuân Khánh",
-    "album": "Album Tình Ca Vàng",
-    "genre": "Acoustic",
-    "category": "Danh sách bài hát hiện hành",
-    "cdName": "Tình Ca Vàng",
-    "driveUrl": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "likeCount": 1450,
+    "likeCount": 9999,
     "isLiked": true
   }
 ]
