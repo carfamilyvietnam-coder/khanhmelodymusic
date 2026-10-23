@@ -206,20 +206,7 @@
                 currentSongIndex: -1,
                 currentPlayingId: null,
                 isPlaying: false,
-                songs: [
-                    {
-                        id: "s_soundhelix_1",
-                        title: "Đêm buồn (Global Test MP3)",
-                        artist: "Trần Xuân Khánh",
-                        album: "Album Tình Ca Vàng",
-                        genre: "Acoustic",
-                        category: "Danh sách bài hát hiện hành",
-                        cdName: "Đêm buồn",
-                        driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                        likeCount: 152,
-                        isLiked: true
-                    }
-                ],
+                songs: [],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
@@ -296,12 +283,20 @@
             }
 
             function initApp() {
-                var saved = localStorage.getItem('km_songs_final_v1');
+                var saved = localStorage.getItem('km_songs_global_v1');
                 if (saved) {
                     try {
                         var parsed = JSON.parse(saved);
-                        if (parsed && parsed.length > 0) state.songs = parsed;
+                        if (parsed && parsed.length > 0) {
+                            state.songs = parsed.filter(function(s){
+                                var text = (s.title + " " + s.cdName + " " + s.album).toLowerCase();
+                                return text.indexOf("đêm buồn") < 0;
+                            });
+                            localStorage.setItem('km_songs_global_v1', JSON.stringify(state.songs));
+                        }
                     } catch(e) {}
+                } else {
+                    state.songs = [];
                 }
                 renderActiveView();
                 bindGlobalEvents();
