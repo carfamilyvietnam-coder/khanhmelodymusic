@@ -9,7 +9,7 @@
     <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Global Real Catalog & Secure Admin v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Global Cloud Sync v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +98,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • Real Music Catalog v2026.10.23</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • Global Cloud Sync</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -190,8 +190,8 @@
     <div class="km-modal-overlay" id="km-admin-pwd-modal" style="display:none;">
         <div class="km-modal-card">
             <h3>🔒 Đăng Nhập Quản Trị Viên (Admin)</h3>
-            <p style="font-size:12px; color:rgba(255,255,255,0.7); margin:6px 0 12px 0;">Nhập mật khẩu Admin (Mật khẩu: 1234)</p>
-            <input type="password" id="km-admin-pwd-input" placeholder="Mật khẩu (1234)" class="km-input" />
+            <p style="font-size:12px; color:rgba(255,255,255,0.7); margin:6px 0 12px 0;">Nhập mật khẩu Admin</p>
+            <input type="password" id="km-admin-pwd-input" placeholder="Mật khẩu" class="km-input" />
             <div style="display:flex; gap:8px; margin-top:8px;">
                 <button class="km-save-btn" id="km-admin-pwd-submit">Xác nhận</button>
                 <button class="km-top-btn" id="km-admin-pwd-cancel" style="flex:1;">Hủy</button>
@@ -203,9 +203,6 @@
         (function () {
             "use strict";
 
-            // PURE REAL MUSIC CATALOG (NO FAKE SAMPLE TRACKS)
-            var globalCatalog = [];
-
             var state = {
                 selectedTab: 1,
                 isAdmin: false,
@@ -215,7 +212,7 @@
                 currentSongIndex: -1,
                 currentPlayingId: null,
                 isPlaying: false,
-                songs: globalCatalog,
+                songs: [],
                 registeredMembers: [
                     { id: "m1", name: "Trần Văn Nam", email: "nam.tran@gmail.com", role: "Thành viên", status: "Đang hoạt động", balance: "50.000 VNĐ" },
                     { id: "m2", name: "Trần Xuân Khánh", email: "khanhbare@gmail.com", role: "Quản trị viên", status: "Đang hoạt động", balance: "250.000 VNĐ" }
@@ -330,33 +327,6 @@
                 });
             }
 
-            function deleteSongMasterRecord(id, callback) {
-                try {
-                    var saved = localStorage.getItem(masterKey);
-                    if (saved) {
-                        var parsed = JSON.parse(saved) || [];
-                        var filtered = parsed.filter(function(s){ return s.id !== id; });
-                        localStorage.setItem(masterKey, JSON.stringify(filtered));
-                    }
-                } catch(e) {}
-
-                openDB(function(database) {
-                    if (!database) {
-                        if (callback) callback(true);
-                        return;
-                    }
-                    try {
-                        var transaction = database.transaction([dbStoreName], "readwrite");
-                        var store = transaction.objectStore(dbStoreName);
-                        var req = store.delete(id);
-                        req.onsuccess = function() { if (callback) callback(true); };
-                        req.onerror = function() { if (callback) callback(true); };
-                    } catch(e) {
-                        if (callback) callback(true);
-                    }
-                });
-            }
-
             audio.onplay = function () {
                 state.isPlaying = true;
                 updatePlayerControls();
@@ -422,11 +392,11 @@
                 renderActiveView();
             }
 
-            function mergeAndRenderSongs(localSongs, dbRecords) {
+            function mergeAndRenderSongs(localSongs, dbRecords, cloudSongs) {
                 var map = {};
-                globalCatalog.forEach(function(s){ map[s.id] = s; });
-                localSongs.forEach(function(s){ map[s.id] = s; });
-                dbRecords.forEach(function(s){ map[s.id] = s; });
+                if (Array.isArray(cloudSongs)) cloudSongs.forEach(function(s){ map[s.id] = s; });
+                if (Array.isArray(localSongs)) localSongs.forEach(function(s){ map[s.id] = s; });
+                if (Array.isArray(dbRecords)) dbRecords.forEach(function(s){ map[s.id] = s; });
 
                 var merged = Object.keys(map).map(function(k){ return map[k]; });
                 state.songs = merged;
@@ -443,24 +413,47 @@
                     } catch(e) {}
                 }
 
-                openDB(function(database) {
-                    var dbRecords = [];
-                    if (database) {
-                        try {
-                            var tx = database.transaction([dbStoreName], "readonly");
-                            var store = tx.objectStore(dbStoreName);
-                            var req = store.getAll();
-                            req.onsuccess = function(e) {
-                                dbRecords = e.target.result || [];
-                                mergeAndRenderSongs(localSongs, dbRecords);
-                            };
-                            req.onerror = function() {
-                                mergeAndRenderSongs(localSongs, []);
-                            };
-                            return;
-                        } catch(e) {}
-                    }
-                    mergeAndRenderSongs(localSongs, []);
+                // Fetch songs_db.json from cloud
+                fetch('/songs_db.json?v=' + Date.now()).then(function(res) {
+                    return res.json();
+                }).then(function(cloudSongs) {
+                    openDB(function(database) {
+                        if (database) {
+                            try {
+                                var tx = database.transaction([dbStoreName], "readonly");
+                                var store = tx.objectStore(dbStoreName);
+                                var req = store.getAll();
+                                req.onsuccess = function(e) {
+                                    var dbRecords = e.target.result || [];
+                                    mergeAndRenderSongs(localSongs, dbRecords, cloudSongs);
+                                };
+                                req.onerror = function() {
+                                    mergeAndRenderSongs(localSongs, [], cloudSongs);
+                                };
+                                return;
+                            } catch(e) {}
+                        }
+                        mergeAndRenderSongs(localSongs, [], cloudSongs);
+                    });
+                }).catch(function() {
+                    openDB(function(database) {
+                        if (database) {
+                            try {
+                                var tx = database.transaction([dbStoreName], "readonly");
+                                var store = tx.objectStore(dbStoreName);
+                                var req = store.getAll();
+                                req.onsuccess = function(e) {
+                                    var dbRecords = e.target.result || [];
+                                    mergeAndRenderSongs(localSongs, dbRecords, []);
+                                };
+                                req.onerror = function() {
+                                    mergeAndRenderSongs(localSongs, [], []);
+                                };
+                                return;
+                            } catch(e) {}
+                        }
+                        mergeAndRenderSongs(localSongs, [], []);
+                    });
                 });
 
                 bindGlobalEvents();
@@ -592,7 +585,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm bài hát MP3 hoặc CD mới!
+                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -625,7 +618,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Bấm nút <strong>'📤 Tải lên'</strong> ở menu dưới đáy để thêm file MP3 hoặc link R2 / S3!
+                        👉 Đăng nhập <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
@@ -684,6 +677,7 @@
                     <label style="font-size:12px;">Hoặc dán Link Cloudflare R2 / S3 / CDN / Google Drive:</label>
                     <textarea id="km-up-urls" placeholder="https://pub-xxx.r2.dev/song.mp3" class="km-textarea"></textarea>
                     <button class="km-save-btn" onclick="window.KMApp.saveUpload()">💾 Lưu bài hát & Đăng lên hệ thống</button>
+                    <button class="km-save-btn" onclick="window.KMApp.exportPlaylistJson()" style="margin-top:10px; background:#1565c0; color:#fff;">📥 Xuất Playlist JSON (Cập nhật Đám Mây)</button>
                 </div>`;
             }
 
@@ -855,6 +849,20 @@
                 shareZalo: function () {
                     shareZalo();
                 },
+                exportPlaylistJson: function () {
+                    if (!state.isAdmin) {
+                        alert("Chỉ Quản trị viên (Admin) mới có quyền xuất Playlist!");
+                        return;
+                    }
+                    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.songs, null, 2));
+                    var downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", "songs_db.json");
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    alert("📥 Đã xuất tệp songs_db.json thành công! Hãy tải tệp này lên thư mục gốc GitHub để đồng bộ cho toàn bộ máy khác và mạng khác trên toàn cầu.");
+                },
                 togglePlayPause: function () {
                     if (state.isPlaying) {
                         audio.pause();
@@ -961,7 +969,7 @@
 
                             saveSongMasterRecord(newSong, function() {
                                 state.songs.unshift(newSong);
-                                alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
+                                alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống! Hãy bấm 'Xuất Playlist JSON' để cập nhật lên đám mây.");
                                 state.selectedTab = 1;
                                 renderActiveView();
                             });
@@ -1003,7 +1011,7 @@
                         state.songs.unshift(newSong);
                     });
 
-                    alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
+                    alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát! Hãy bấm 'Xuất Playlist JSON' để cập nhật lên đám mây.");
                     state.selectedTab = 1;
                     renderActiveView();
                 },
@@ -1011,7 +1019,7 @@
                     var name = document.getElementById("km-reg-name").value.trim();
                     var email = document.getElementById("km-reg-email").value.trim();
                     if (!name || !email) {
-                        alert("Vui nhập đầy đủ Họ tên và Email!");
+                        alert("Vui lòng nhập đầy đủ Họ tên và Email!");
                         return;
                     }
                     state.registeredMembers.unshift({
