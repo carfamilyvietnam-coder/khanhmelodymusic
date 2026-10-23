@@ -9,7 +9,7 @@
     <title>Khanh Melody - Nhạc Bản Quyền Đỉnh Cao | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Pure Direct Audio v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (Global Public Catalog Active v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +98,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • Pure Audio Fixed</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-GLOBAL-CATALOG-ACTIVE</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -203,8 +203,45 @@
         (function () {
             "use strict";
 
-            // CLEAN CATALOG FOR REAL KHANH MEMORY UPLOADS ONLY
-            var globalCatalog = [];
+            // GLOBAL PUBLIC CATALOG VISIBLE TO ALL VISITORS ON ALL DEVICES & NETWORKS
+            var globalCatalog = [
+                {
+                    id: "s_global_1",
+                    title: "Xin Cho Tình Yêu",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Xin Cho Tình Yêu",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                    likeCount: 382,
+                    isLiked: true
+                },
+                {
+                    id: "s_global_2",
+                    title: "Bản Không Tên Số 1",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Bản Không Tên",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                    likeCount: 295,
+                    isLiked: true
+                },
+                {
+                    id: "s_global_3",
+                    title: "Tình Ca Vàng",
+                    artist: "Trần Xuân Khánh",
+                    album: "Album Khánh Memory",
+                    genre: "Acoustic",
+                    category: "Danh sách bài hát hiện hành",
+                    cdName: "Tình Ca Vàng",
+                    driveUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                    likeCount: 410,
+                    isLiked: true
+                }
+            ];
 
             var state = {
                 selectedTab: 1,
@@ -223,7 +260,6 @@
                 walletBalance: 100000
             };
 
-            // DIRECT PURE HTML5 AUDIO OBJECT - IMMUNE TO CORS AUDIO CONTEXT MUTE BUGS
             var audio = new Audio();
             var pendingDownloadSong = null;
 
@@ -270,7 +306,7 @@
                 }
             }
 
-            // BASE64 TEXT STORAGE ENGINE (LOCALSTORAGE + INDEXEDDB DUAL BACKUP)
+            // BASE64 TEXT STORAGE ENGINE
             var masterKey = "khanhmelody_v20_master";
             var dbName = "KhanhMelodyDB_v20";
             var dbStoreName = "songs_store";
@@ -593,7 +629,7 @@
                         <div class="km-card-title">💿 Danh sách Nhóm CD nhạc</div>
                         <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.7); font-size:12px;">
                             🎵 Chưa có CD nào!<br/><br/>
-                            👉 Đăng nhập Quản trị viên (Admin MK: 1234) -> Bấm 'Tải lên' để thêm bài hát MP3 hoặc CD mới!
+                            👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc CD mới!
                         </div>
                     </div>`;
                 }
@@ -626,7 +662,7 @@
                     songsHtml = `
                     <div style="text-align:center; padding: 30px; color: rgba(255,255,255,0.7); font-size:12px;">
                         🎵 Danh sách đang trống!<br/><br/>
-                        👉 Đăng nhập <strong>Admin (MK: 1234)</strong> -> Vào mục <strong>'Tải lên'</strong> để thêm file MP3 hoặc link R2 / S3!
+                        👉 Bấm nút <strong>'👤 Thành viên' -> Đăng nhập Admin (1234) -> '📤 Tải lên'</strong> để thêm bài hát MP3 hoặc link R2 / S3!
                     </div>`;
                 } else {
                     list.forEach(function (song) {
