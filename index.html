@@ -6,10 +6,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Khanh Melody - Mobile MP3 & Base64 Permanent Storage | www.khanhmelodymussic.com</title>
+    <title>Khanh Melody - Mobile MP3 & OPFS Native Disk Storage Edition | www.khanhmelodymussic.com</title>
     <style>
         /**
-         * Khanh Melody Mobile-First Web Edition (Base64 Permanent Storage Engine v2026.10.23)
+         * Khanh Melody Mobile-First Web Edition (OPFS Native Disk Storage v2026.10.23)
          * Domain: www.khanhmelodymussic.com
          */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,7 +97,7 @@
                 <div class="km-logo">🎼</div>
                 <div>
                     <div class="km-brand-name">Khanh Melody</div>
-                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-BASE64-PERMANENT</div>
+                    <div class="km-domain-tag">www.khanhmelodymussic.com • v2026.10.23-OPFS-SYSTEM</div>
                 </div>
             </div>
             <div class="km-topbar-actions">
@@ -220,139 +220,71 @@
             var audio = new Audio();
             var pendingDownloadSong = null;
 
-            // BASE64 STRING STORAGE ENGINE (PURE TEXT RECORDS, 100% PERSISTENCE)
-            var dbName = "KhanhMelodyDB_Base64_v1";
-            var dbStoreName = "songs_store";
-            var db = null;
-            var masterLocalKey = "khanhmelody_base64_master_storage_v1";
+            // OPFS (ORIGIN PRIVATE FILE SYSTEM) NATIVE DISK STORAGE ENGINE
+            var masterMetaKey = "khanhmelody_opfs_songs_metadata_v1";
 
-            function openDB(callback) {
-                if (db) {
-                    if (callback) callback(db);
-                    return;
+            async function saveFileToOPFS(fileName, fileBlob) {
+                try {
+                    if (navigator.storage && navigator.storage.getDirectory) {
+                        const root = await navigator.storage.getDirectory();
+                        const fileHandle = await root.getFileHandle(fileName, { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(fileBlob);
+                        await writable.close();
+                        return true;
+                    }
+                } catch(e) {
+                    console.log("OPFS write error:", e);
                 }
-                var request = indexedDB.open(dbName, 1);
-                request.onupgradeneeded = function(event) {
-                    var database = event.target.result;
-                    if (!database.objectStoreNames.contains(dbStoreName)) {
-                        database.createObjectStore(dbStoreName, { keyPath: "id" });
-                    }
-                };
-                request.onsuccess = function(event) {
-                    db = event.target.result;
-                    if (callback) callback(db);
-                };
-                request.onerror = function(event) {
-                    if (callback) callback(null);
-                };
+                return false;
             }
 
-            function saveSongRecord(songObj, callback) {
-                // 1. Dual Backup to LocalStorage
+            async function getFileFromOPFS(fileName) {
                 try {
-                    var existing = [];
-                    var saved = localStorage.getItem(masterLocalKey);
-                    if (saved) existing = JSON.parse(saved) || [];
-
-                    var idx = existing.findIndex(function(s){ return s.id === songObj.id; });
-                    if (idx >= 0) existing[idx] = songObj;
-                    else existing.unshift(songObj);
-
-                    localStorage.setItem(masterLocalKey, JSON.stringify(existing));
-                } catch(e) {}
-
-                // 2. Save pure text record to IndexedDB
-                openDB(function(database) {
-                    if (!database) {
-                        if (callback) callback(true);
-                        return;
+                    if (navigator.storage && navigator.storage.getDirectory) {
+                        const root = await navigator.storage.getDirectory();
+                        const fileHandle = await root.getFileHandle(fileName);
+                        const file = await fileHandle.getFile();
+                        return URL.createObjectURL(file);
                     }
-                    try {
-                        var transaction = database.transaction([dbStoreName], "readwrite");
-                        var store = transaction.objectStore(dbStoreName);
-                        var req = store.put(songObj);
-                        req.onsuccess = function() {
-                            if (callback) callback(true);
-                        };
-                        req.onerror = function() {
-                            if (callback) callback(true);
-                        };
-                    } catch(e) {
-                        if (callback) callback(true);
-                    }
-                });
+                } catch(e) {
+                    console.log("OPFS read error:", e);
+                }
+                return null;
             }
 
-            function loadAllSongRecords(callback) {
-                // First read synchronously from LocalStorage backup
-                var localSongs = [];
+            async function deleteFileFromOPFS(fileName) {
                 try {
-                    var saved = localStorage.getItem(masterLocalKey);
-                    if (saved) {
-                        var parsed = JSON.parse(saved);
-                        if (Array.isArray(parsed)) localSongs = parsed;
+                    if (navigator.storage && navigator.storage.getDirectory) {
+                        const root = await navigator.storage.getDirectory();
+                        await root.removeEntry(fileName);
+                        return true;
                     }
-                } catch(e) {}
-
-                // Then merge from IndexedDB
-                openDB(function(database) {
-                    if (!database) {
-                        if (callback) callback(localSongs);
-                        return;
-                    }
-                    try {
-                        var transaction = database.transaction([dbStoreName], "readonly");
-                        var store = transaction.objectStore(dbStoreName);
-                        var req = store.getAll();
-                        req.onsuccess = function(e) {
-                            var dbRecords = e.target.result || [];
-                            if (dbRecords.length > 0) {
-                                var map = {};
-                                localSongs.forEach(function(s){ map[s.id] = s; });
-                                dbRecords.forEach(function(s){ map[s.id] = s; });
-
-                                var merged = Object.keys(map).map(function(k){ return map[k]; });
-                                if (callback) callback(merged);
-                            } else {
-                                if (callback) callback(localSongs);
-                            }
-                        };
-                        req.onerror = function() {
-                            if (callback) callback(localSongs);
-                        };
-                    } catch(e) {
-                        if (callback) callback(localSongs);
-                    }
-                });
+                } catch(e) {
+                    console.log("OPFS delete error:", e);
+                }
+                return false;
             }
 
-            function deleteSongRecord(id, callback) {
-                // Remove from LocalStorage
+            function saveMetadataToLocal() {
                 try {
-                    var saved = localStorage.getItem(masterLocalKey);
-                    if (saved) {
-                        var parsed = JSON.parse(saved) || [];
-                        var filtered = parsed.filter(function(s){ return s.id !== id; });
-                        localStorage.setItem(masterLocalKey, JSON.stringify(filtered));
-                    }
+                    var metaList = state.songs.map(function(s) {
+                        return {
+                            id: s.id,
+                            title: s.title,
+                            artist: s.artist,
+                            album: s.album,
+                            genre: s.genre,
+                            category: s.category,
+                            cdName: s.cdName,
+                            driveUrl: s.opfsFileName ? "" : s.driveUrl,
+                            opfsFileName: s.opfsFileName || null,
+                            likeCount: s.likeCount,
+                            isLiked: s.isLiked
+                        };
+                    });
+                    localStorage.setItem(masterMetaKey, JSON.stringify(metaList));
                 } catch(e) {}
-
-                // Remove from IndexedDB
-                openDB(function(database) {
-                    if (!database) {
-                        if (callback) callback(true);
-                        return;
-                    }
-                    try {
-                        var transaction = database.transaction([dbStoreName], "readwrite");
-                        var store = transaction.objectStore(dbStoreName);
-                        var req = store.delete(id);
-                        req.onsuccess = function() { if (callback) callback(true); };
-                        req.onerror = function() { if (callback) callback(true); };
-                    } catch(e) {
-                        if (callback) callback(true);
-                    }
-                });
             }
 
             audio.onplay = function () {
@@ -420,15 +352,28 @@
                 renderActiveView();
             }
 
-            function initApp() {
-                loadAllSongRecords(function(songs) {
-                    if (songs && songs.length > 0) {
-                        state.songs = songs;
-                    } else {
-                        state.songs = [];
-                    }
-                    renderActiveView();
-                });
+            async function initApp() {
+                var saved = localStorage.getItem(masterMetaKey);
+                if (saved) {
+                    try {
+                        var parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            for (var i = 0; i < parsed.length; i++) {
+                                var s = parsed[i];
+                                if (s.opfsFileName) {
+                                    var opfsUrl = await getFileFromOPFS(s.opfsFileName);
+                                    if (opfsUrl) {
+                                        s.driveUrl = opfsUrl;
+                                    }
+                                }
+                            }
+                            state.songs = parsed;
+                        }
+                    } catch(e) {}
+                } else {
+                    state.songs = [];
+                }
+                renderActiveView();
                 bindGlobalEvents();
             }
 
@@ -714,15 +659,7 @@
                 document.getElementById("km-clear-all-btn").addEventListener("click", function () {
                     if (confirm("Xóa trắng toàn bộ danh sách bài hát?")) {
                         state.songs = [];
-                        localStorage.removeItem(masterLocalKey);
-                        openDB(function(db){
-                            if (db) {
-                                try {
-                                    var tx = db.transaction([dbStoreName], "readwrite");
-                                    tx.objectStore(dbStoreName).clear();
-                                } catch(e) {}
-                            }
-                        });
+                        localStorage.removeItem(masterMetaKey);
                         audio.pause();
                         state.isPlaying = false;
                         state.currentPlayingId = null;
@@ -848,17 +785,20 @@
                 },
                 deleteSong: function (id) {
                     if (confirm("Xóa vĩnh viễn bài hát này khỏi web?")) {
+                        var song = state.songs.find(function(s){ return s.id === id; });
+                        if (song && song.opfsFileName) {
+                            deleteFileFromOPFS(song.opfsFileName);
+                        }
                         if (state.currentPlayingId === id) {
                             audio.pause();
                             state.isPlaying = false;
                             state.currentPlayingId = null;
                         }
                         state.songs = state.songs.filter(function (s) { return s.id !== id; });
-                        deleteSongRecord(id, function() {
-                            state.currentSongIndex = -1;
-                            renderActiveView();
-                            alert("Đã xóa vĩnh viễn bài hát!");
-                        });
+                        saveMetadataToLocal();
+                        state.currentSongIndex = -1;
+                        renderActiveView();
+                        alert("Đã xóa vĩnh viễn bài hát!");
                     }
                 },
                 saveUpload: function () {
@@ -869,32 +809,31 @@
 
                     if (fileInput && fileInput.files && fileInput.files[0]) {
                         var file = fileInput.files[0];
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            var base64Data = e.target.result; // Pure text Base64 Data URL!
-                            var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
+                        var songTitle = title || file.name.replace(/\.[^/.]+$/, "");
+                        var fileId = "opfs_" + Date.now() + ".mp3";
+                        var blobUrl = URL.createObjectURL(file);
 
-                            var newSong = {
-                                id: "s_" + Date.now(),
-                                title: songTitle,
-                                artist: "Tải lên từ thiết bị",
-                                album: album || "Album MP3",
-                                genre: "Acoustic",
-                                category: "Danh sách bài hát hiện hành",
-                                cdName: title || "Nhóm CD",
-                                driveUrl: base64Data,
-                                likeCount: 1,
-                                isLiked: true
-                            };
-
-                            saveSongRecord(newSong, function() {
-                                state.songs.unshift(newSong);
-                                alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' vào hệ thống!");
-                                state.selectedTab = 1;
-                                renderActiveView();
-                            });
+                        var newSong = {
+                            id: "s_" + Date.now(),
+                            title: songTitle,
+                            artist: "Tải lên từ thiết bị",
+                            album: album || "Album MP3",
+                            genre: "Acoustic",
+                            category: "Danh sách bài hát hiện hành",
+                            cdName: title || "Nhóm CD",
+                            driveUrl: blobUrl,
+                            opfsFileName: fileId,
+                            likeCount: 1,
+                            isLiked: true
                         };
-                        reader.readAsDataURL(file);
+
+                        saveFileToOPFS(fileId, file).then(function() {
+                            state.songs.unshift(newSong);
+                            saveMetadataToLocal();
+                            alert("🎉 Đã lưu vĩnh viễn tệp MP3 '" + songTitle + "' trực tiếp vào ổ đĩa thiết bị!");
+                            state.selectedTab = 1;
+                            renderActiveView();
+                        });
                         return;
                     }
 
@@ -927,10 +866,10 @@
                             isLiked: true
                         };
 
-                        saveSongRecord(newSong, null);
                         state.songs.unshift(newSong);
                     });
 
+                    saveMetadataToLocal();
                     alert("🎉 Đã lưu thành công " + foundUrls.length + " bài hát!");
                     state.selectedTab = 1;
                     renderActiveView();
