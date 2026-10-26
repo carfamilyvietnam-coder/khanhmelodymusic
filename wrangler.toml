@@ -1,0 +1,9 @@
+name = "khanhmelody-admin"
+compatibility_date = "2024-01-01"
+
+[pages]
+build_command = "cd frontend/admin && npm install && npm run build"
+build_output_dir = "frontend/admin/dist"
+
+[[pages.functions]]
+directory = "frontend/admin/public/_functions"

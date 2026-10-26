@@ -1,0 +1,10 @@
+{
+  "build": {
+    "command": "cd frontend/admin && npm install && npm run build",
+    "cwd": "frontend/admin",
+    "destination": "dist"
+  },
+  "functions": {
+    "directory": "frontend/admin/public/_functions"
+  }
+}
