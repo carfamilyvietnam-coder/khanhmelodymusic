@@ -3,5 +3,8 @@
     "command": "npm install && npm run build",
     "cwd": "frontend/member",
     "destination": "dist"
+  },
+  "routing": {
+    "index": "index.html"
   }
 }
