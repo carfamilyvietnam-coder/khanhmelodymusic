@@ -1,7 +1,7 @@
 {
   "build": {
     "command": "npm install && npm run build",
-    "cwd": "frontend/admin",
+    "cwd": "frontend/member",
     "destination": "dist"
   }
 }
