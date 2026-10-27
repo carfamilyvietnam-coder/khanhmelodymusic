@@ -60,6 +60,8 @@ const MOCK_WALLETS = MOCK_USERS.map(u => ({
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
+  const [isMemberMode, setIsMemberMode] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const logout = () => {
     localStorage.removeItem('token')
@@ -78,34 +80,51 @@ function App() {
         <Toaster position="top-right" />
         <nav className="bg-gray-800 p-4 shadow-lg">
           <div className="container mx-auto flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-pink-500">KhanhMelody Admin</h1>
-              <p className="text-yellow-400 text-sm font-semibold">Nghe nhạc bản quyền đỉnh cao</p>
-            </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-300">Welcome, {user.username}</span>
-              <a href="/" target="_blank" rel="noopener noreferrer" className="bg-pink-600 px-4 py-2 rounded hover:bg-pink-700">
-                Trang Thành Viên
-              </a>
-              <button onClick={logout} className="bg-red-600 px-4 py-2 rounded hover:bg-red-700">
-                Logout
+              {!isMemberMode && (
+                <button 
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden text-white text-2xl"
+                >
+                  ☰
+                </button>
+              )}
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-pink-500">KhanhMelody Admin</h1>
+                <p className="text-yellow-400 text-xs sm:text-sm font-semibold">Nghe nhạc bản quyền đỉnh cao</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300 text-sm hidden sm:block">{user.username}</span>
+              <button 
+                onClick={() => setIsMemberMode(!isMemberMode)}
+                className={`${isMemberMode ? 'bg-gray-600' : 'bg-pink-600'} px-3 py-2 rounded hover:opacity-80 font-semibold text-sm`}
+              >
+                {isMemberMode ? 'Admin' : 'Thành viên'}
+              </button>
+              <button onClick={logout} className="bg-red-600 px-3 py-2 rounded hover:bg-red-700 text-sm">
+                Đăng xuất
               </button>
             </div>
           </div>
         </nav>
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-6">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/songs" element={<SongManagement />} />
-              <Route path="/music-player" element={<MusicPlayer />} />
-              <Route path="/users" element={<UserManagement />} />
-              <Route path="/revenue" element={<RevenueManagement />} />
-              <Route path="/wallets" element={<WalletManagement />} />
-            </Routes>
-          </main>
-        </div>
+        {isMemberMode ? (
+          <MemberView />
+        ) : (
+          <div className="flex">
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <main className="flex-1 p-4">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/songs" element={<SongManagement />} />
+                <Route path="/music-player" element={<MusicPlayer />} />
+                <Route path="/users" element={<UserManagement />} />
+                <Route path="/revenue" element={<RevenueManagement />} />
+                <Route path="/wallets" element={<WalletManagement />} />
+              </Routes>
+            </main>
+          </div>
+        )}
       </div>
     </Router>
   )
@@ -176,18 +195,24 @@ function Login({ onLogin }) {
   )
 }
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   return (
-    <div className="w-64 bg-gray-800 min-h-screen p-4">
-      <ul className="space-y-2">
-        <li><Link to="/" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Dashboard</Link></li>
-        <li><Link to="/songs" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Songs</Link></li>
-        <li><Link to="/music-player" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Nghe Nhạc</Link></li>
-        <li><Link to="/users" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Users</Link></li>
-        <li><Link to="/revenue" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Revenue</Link></li>
-        <li><Link to="/wallets" className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Wallets</Link></li>
-      </ul>
-    </div>
+    <>
+      <div 
+        className={`fixed inset-0 bg-black/50 z-40 lg:hidden ${isOpen ? 'block' : 'hidden'}`}
+        onClick={onClose}
+      />
+      <div className={`fixed lg:static w-64 bg-gray-800 min-h-screen p-4 z-50 transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <ul className="space-y-2">
+          <li><Link to="/" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Dashboard</Link></li>
+          <li><Link to="/songs" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Songs</Link></li>
+          <li><Link to="/music-player" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Nghe Nhạc</Link></li>
+          <li><Link to="/users" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Users</Link></li>
+          <li><Link to="/revenue" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Revenue</Link></li>
+          <li><Link to="/wallets" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Wallets</Link></li>
+        </ul>
+      </div>
+    </>
   )
 }
 
@@ -272,30 +297,30 @@ function Dashboard() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl text-gray-400">Total Songs</h3>
-          <p className="text-4xl font-bold text-pink-500">{stats.songs}</p>
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6">Dashboard</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg sm:text-xl text-gray-400">Total Songs</h3>
+          <p className="text-3xl sm:text-4xl font-bold text-pink-500">{stats.songs}</p>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl text-gray-400">Total Users</h3>
-          <p className="text-4xl font-bold text-blue-500">{stats.users}</p>
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg sm:text-xl text-gray-400">Total Users</h3>
+          <p className="text-3xl sm:text-4xl font-bold text-blue-500">{stats.users}</p>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl text-gray-400">Total Revenue</h3>
-          <p className="text-4xl font-bold text-green-500">{stats.revenue.toLocaleString()}đ</p>
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg sm:text-xl text-gray-400">Total Revenue</h3>
+          <p className="text-3xl sm:text-4xl font-bold text-green-500">{stats.revenue.toLocaleString()}đ</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl text-gray-400 mb-4">Revenue Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg sm:text-xl text-gray-400 mb-4">Revenue Trend</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <LineChart data={revenueData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
+              <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+              <YAxis stroke="#9CA3AF" fontSize={12} />
               <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
               <Legend />
               <Line type="monotone" dataKey="revenue" stroke="#EC4899" strokeWidth={2} />
@@ -303,13 +328,13 @@ function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 className="text-xl text-gray-400 mb-4">Top Songs Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg sm:text-xl text-gray-400 mb-4">Top Songs Performance</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={songData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
+              <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+              <YAxis stroke="#9CA3AF" fontSize={12} />
               <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
               <Legend />
               <Bar dataKey="plays" fill="#8B5CF6" name="Plays" />
@@ -1196,6 +1221,141 @@ function MusicPlayer() {
             ))}
           </div>
         </>
+      )}
+    </div>
+  )
+}
+
+function MemberView() {
+  const [songs, setSongs] = useState([])
+  const [mySongs, setMySongs] = useState([])
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedSong, setSelectedSong] = useState(null)
+  const [activeTab, setActiveTab] = useState('all')
+  const [purchasedIds, setPurchasedIds] = useState(JSON.parse(localStorage.getItem('purchasedSongs') || '[]'))
+
+  const QR_CODE_URL = 'https://img.vietqr.io/image/vib-197019779-compact2.png?amount=50000&addInfo=KhanhMelody+Nap+tien'
+
+  useEffect(() => {
+    setSongs(MOCK_SONGS)
+    setMySongs(MOCK_SONGS.filter(s => purchasedIds.includes(s.id)))
+  }, [purchasedIds])
+
+  const handlePlay = (song) => {
+    if (song.audio_url) {
+      toast.success(`Đang phát: ${song.title}`)
+    } else {
+      toast.error('Bài hát chưa có file audio')
+    }
+  }
+
+  const handleDownload = (song) => {
+    if (purchasedIds.includes(song.id)) {
+      toast.success('Bạn đã sở hữu bài hát này!')
+      return
+    }
+    setSelectedSong(song)
+    setShowPaymentModal(true)
+  }
+
+  const handlePayment = async () => {
+    const newPurchasedIds = [...purchasedIds, selectedSong.id]
+    localStorage.setItem('purchasedSongs', JSON.stringify(newPurchasedIds))
+    setPurchasedIds(newPurchasedIds)
+    setShowPaymentModal(false)
+    toast.success('Thanh toán thành công! Bạn đã tải được bài hát')
+  }
+
+  const displaySongs = activeTab === 'all' ? songs : mySongs
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`flex-1 px-6 py-3 rounded-lg font-semibold ${activeTab === 'all' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+        >
+          Danh sách bài hát
+        </button>
+        <button
+          onClick={() => setActiveTab('my')}
+          className={`flex-1 px-6 py-3 rounded-lg font-semibold ${activeTab === 'my' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+        >
+          Bài hát của tôi ({mySongs.length})
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {displaySongs.map((song) => (
+          <div key={song.id} className="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-pink-400">{song.title}</h3>
+              <p className="text-gray-300">{song.artist}</p>
+              <p className="text-gray-400 text-sm">{song.genre}</p>
+            </div>
+            <div className="flex gap-4 mb-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400">🎧</span>
+                <span>{(song.play_count || 0).toLocaleString()} lượt nghe</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-green-400">⬇️</span>
+                <span>{(song.download_count || 0).toLocaleString()} lượt tải</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePlay(song)}
+                className="flex-1 bg-blue-600 py-2 rounded-lg hover:bg-blue-700 font-semibold"
+              >
+                Nghe thử
+              </button>
+              <button
+                onClick={() => handleDownload(song)}
+                className={`flex-1 py-2 rounded-lg font-semibold ${purchasedIds.includes(song.id) ? 'bg-green-800' : 'bg-green-600 hover:bg-green-700'}`}
+              >
+                {purchasedIds.includes(song.id) ? 'Đã mua' : 'Tải về (50.000đ)'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full">
+            <h3 className="text-2xl font-bold mb-4 text-pink-500">Thanh toán</h3>
+            <p className="text-gray-300 mb-4">
+              Bài hát: <span className="text-pink-400 font-semibold">{selectedSong?.title}</span>
+            </p>
+            <p className="text-gray-300 mb-6">
+              Số tiền: <span className="text-green-400 font-bold text-xl">50.000đ</span>
+            </p>
+            <div className="bg-white p-4 rounded-lg mb-6">
+              <img src={QR_CODE_URL} alt="QR Code" className="w-full h-auto" />
+              <p className="text-gray-800 text-center mt-2 text-sm font-semibold">
+                QUÉT MÃ QR ĐỂ THANH TOÁN
+              </p>
+              <p className="text-gray-600 text-center text-xs mt-1">
+                TRẦN XUÂN KHÁNH - VIB - 197019779
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={handlePayment}
+                className="flex-1 bg-green-600 py-3 rounded-lg hover:bg-green-700 font-bold"
+              >
+                Đã thanh toán
+              </button>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="flex-1 bg-gray-600 py-3 rounded-lg hover:bg-gray-700 font-bold"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
