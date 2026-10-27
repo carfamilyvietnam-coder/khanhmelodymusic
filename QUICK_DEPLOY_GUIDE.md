@@ -122,7 +122,7 @@ R2_SECRET_ACCESS_KEY=[Secret Key vừa copy]
 ### 4.3 Thay đổi JWT Secret
 Thay đổi `JWT_SECRET_KEY` thành chuỗi ngẫu nhiên mạnh:
 ```bash
-JWT_SECRET_KEY=khanhmelody-production-secret-key-2024-xyz-abc-123
+JWT_SECRET_KEY=<generate-a-random-secret-at-least-32-characters>
 ```
 
 ---
@@ -147,7 +147,7 @@ Backend sẽ chạy trên: `http://0.0.0.0:8882`
 
 ### 6.1 Test Frontend
 1. Mở browser: `https://khanhmelodymussic.com`
-2. Login: Username: `admin` | Password: `admin123`
+2. Login: Username: `admin` | Password: `<configured-admin-password>`
 3. Kiểm tra các trang: Dashboard, Songs, Users, Revenue, Wallets
 
 ### 6.2 Test Backend API
@@ -162,7 +162,7 @@ Nên trả về: `{"error":"Method Not Allowed"}` (điều này bình thường 
 ```bash
 curl -X POST https://api.khanhmelodymussic.com/api/login \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
+  -d "{\"username\":\"admin\",\"password\":\"<configured-admin-password>\"}"
 ```
 
 Nên trả về JSON với access_token.
@@ -205,7 +205,7 @@ Sau khi hoàn thành tất cả các bước, kiểm tra:
 - [ ] JWT_SECRET_KEY đã thay đổi
 - [ ] Backend đang chạy trên port 8882
 - [ ] Website truy cập được tại https://khanhmelodymussic.com
-- [ ] Login admin/admin123 thành công
+- [ ] Login admin/<configured-admin-password> thành công
 - [ ] Các chức năng hoạt động bình thường
 
 ---

@@ -104,7 +104,7 @@ curl https://api.khanhmelodymussic.com/api/login
 
 ### Test Frontend
 Mở browser: `https://khanhmelodymussic.com`
-- Login: admin / admin123
+- Login: admin / <configured-admin-password>
 - Test các chức năng
 
 ### Test R2 Upload

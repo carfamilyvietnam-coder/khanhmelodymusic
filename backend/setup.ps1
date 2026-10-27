@@ -24,7 +24,7 @@ try {
     $pythonVersion = python --version 2>&1
     Write-Host "✓ Python found: $pythonVersion" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Python not found. Please install Python 3.8 or higher from https://www.python.org/" -ForegroundColor Red
+    Write-Host "✗ Python not found. Please install Python 3.9 or higher from https://www.python.org/" -ForegroundColor Red
     pause
     exit 1
 }
@@ -65,7 +65,6 @@ Write-Host ""
 Write-Host "[6/7] Setting up PostgreSQL database..." -ForegroundColor Yellow
 try {
     # Test PostgreSQL connection
-    $env:PGPASSWORD = "postgres"
     psql -U postgres -c "SELECT version();" 2>&1 | Out-Null
     
     # Create database if not exists
@@ -74,14 +73,14 @@ try {
 } catch {
     Write-Host "✗ Failed to connect to PostgreSQL. Please ensure:" -ForegroundColor Red
     Write-Host "  - PostgreSQL is running" -ForegroundColor Yellow
-    Write-Host "  - Password is set to 'postgres'" -ForegroundColor Yellow
+    Write-Host "  - PostgreSQL credentials are configured in your environment" -ForegroundColor Yellow
     Write-Host "  - PostgreSQL service is started" -ForegroundColor Yellow
     pause
     exit 1
 }
 
 Write-Host ""
-Write-Host "[7/7] Initializing database with sample data..." -ForegroundColor Yellow
+Write-Host "[7/7] Initializing database and optional first administrator..." -ForegroundColor Yellow
 python init_db.py
 Write-Host "✓ Database initialized" -ForegroundColor Green
 
@@ -90,11 +89,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Setup Completed Successfully!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Default Login Credentials:" -ForegroundColor Yellow
-Write-Host "  Admin: admin / admin123" -ForegroundColor White
-Write-Host "  User1: user1 / user123" -ForegroundColor White
-Write-Host "  User2: user2 / user123" -ForegroundColor White
-Write-Host "  User3: user3 / user123" -ForegroundColor White
+Write-Host "No default account is created. Configure INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, and INITIAL_ADMIN_PASSWORD in .env before initialization to create the first administrator." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "To start the backend server, run:" -ForegroundColor Yellow
 Write-Host "  .\start_backend.ps1" -ForegroundColor Cyan

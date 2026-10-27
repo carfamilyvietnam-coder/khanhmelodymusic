@@ -3,9 +3,11 @@ import { HashRouter as Router, Routes, Route, Link, useNavigate } from 'react-ro
 import axios from 'axios'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import toast, { Toaster } from 'react-hot-toast'
+import { uploadToR2 } from './config/r2'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.khanhmelodymussic.com/api'
-const USE_MOCK_DATA = true // Set to true for testing, false when backend is available
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+  || (import.meta.env.DEV ? '/api' : 'https://api.khanhmelodymussic.com/api')
+const USE_MOCK_DATA = false
 
 // Mock data for testing
 const MOCK_SONGS = [
@@ -60,14 +62,46 @@ const MOCK_WALLETS = MOCK_USERS.map(u => ({
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
+  const [authLoading, setAuthLoading] = useState(Boolean(token))
   const [isMemberMode, setIsMemberMode] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (!token) {
+      setAuthLoading(false)
+      return
+    }
+    let active = true
+    axios.get(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(({ data }) => {
+        if (data.role !== 'admin') throw new Error('Admin access required')
+        if (active) {
+          setUser(data)
+          localStorage.setItem('user', JSON.stringify(data))
+        }
+      })
+      .catch(() => {
+        if (!active) return
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        setToken(null)
+        setUser({})
+      })
+      .finally(() => {
+        if (active) setAuthLoading(false)
+      })
+    return () => { active = false }
+  }, [token])
 
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setToken(null)
     setUser({})
+  }
+
+  if (authLoading) {
+    return <div className="min-h-screen bg-gray-900 text-white grid place-items-center">Checking administrator access...</div>
   }
 
   if (!token) {
@@ -138,30 +172,19 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      if (USE_MOCK_DATA) {
-        // Mock login for testing without backend
-        if (username === 'admin' && password === 'admin123') {
-          const mockToken = 'mock-jwt-token-' + Date.now()
-          const mockUser = { username: 'admin', email: 'admin@khanhmelody.com', role: 'admin' }
-          localStorage.setItem('token', mockToken)
-          localStorage.setItem('user', JSON.stringify(mockUser))
-          onLogin(mockToken, mockUser)
-          toast.success('Login successful! (Mock Mode)')
-        } else {
-          setError('Invalid credentials')
-          toast.error('Use admin / admin123 for mock login')
-        }
-      } else {
-        // Real API call
-        const res = await axios.post(`${API_BASE}/login`, { username, password })
-        localStorage.setItem('token', res.data.access_token)
-        localStorage.setItem('user', JSON.stringify(res.data.user))
-        onLogin(res.data.access_token, res.data.user)
-        toast.success('Login successful!')
+      const res = await axios.post(`${API_BASE}/login`, { username, password })
+      if (res.data.user?.role !== 'admin') {
+        setError('Administrator access required')
+        toast.error('This account does not have administrator access')
+        return
       }
+      localStorage.setItem('token', res.data.access_token)
+      localStorage.setItem('user', JSON.stringify(res.data.user))
+      onLogin(res.data.access_token, res.data.user)
+      toast.success('Login successful!')
     } catch (err) {
-      setError('Invalid credentials')
-      toast.error('Login failed. Please check your credentials.')
+      setError(err.response?.data?.error || 'Login failed')
+      toast.error(err.response?.data?.error || 'Login failed. Please check your credentials.')
     }
   }
 
@@ -486,13 +509,7 @@ function SongManagement() {
               <td className="p-3">{song.play_count}</td>
               <td className="p-3">{song.download_count}</td>
               <td className="p-3">
-                {song.audio_url ? (
-                  <a href={song.audio_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs truncate block max-w-[150px]">
-                    {song.audio_url}
-                  </a>
-                ) : (
-                  <span className="text-gray-500 text-xs">No URL</span>
-                )}
+                <span className="text-gray-400 text-xs">Private R2 audio</span>
               </td>
               <td className="p-3">
                 <button onClick={() => { setEditingSong(song); setShowModal(true) }} className="bg-blue-600 px-3 py-1 rounded mr-2 hover:bg-blue-700">Edit</button>
@@ -530,48 +547,28 @@ function SongManagement() {
 
 function SongModal({ song, onClose, onSave }) {
   const [formData, setFormData] = useState(song || { title: '', artist: '', album: '', genre: '', price: 50000, audio_url: '' })
+  const [audioFile, setAudioFile] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      if (USE_MOCK_DATA) {
-        // Mock mode - add to MOCK_SONGS
-        if (song) {
-          const index = MOCK_SONGS.findIndex(s => s.id === song.id)
-          if (index !== -1) {
-            MOCK_SONGS[index] = { ...MOCK_SONGS[index], ...formData }
-          }
-          toast.success('Song updated successfully (Mock Mode)')
-        } else {
-          const newSong = {
-            id: Date.now(),
-            ...formData,
-            play_count: 0,
-            download_count: 0,
-            audio_url: formData.audio_url || ''
-          }
-          MOCK_SONGS.push(newSong)
-          toast.success('Song uploaded successfully (Mock Mode)')
-        }
-        onSave()
-        onClose()
+      const token = localStorage.getItem('token')
+      if (song) {
+        await axios.put(`${API_BASE}/admin/songs/${song.id}`, formData, { headers: { Authorization: `Bearer ${token}` } })
+        toast.success('Song updated successfully')
       } else {
-        const token = localStorage.getItem('token')
-        if (song) {
-          await axios.put(`${API_BASE}/admin/songs/${song.id}`, formData, { headers: { Authorization: `Bearer ${token}` } })
-          toast.success('Song updated successfully')
-        } else {
-          const form = new FormData()
-          Object.keys(formData).forEach(key => form.append(key, formData[key]))
-          await axios.post(`${API_BASE}/admin/songs`, form, { headers: { Authorization: `Bearer ${token}` } })
-          toast.success('Song uploaded successfully')
-        }
-        onSave()
-        onClose()
+        if (!audioFile) throw new Error('Choose an audio file to upload')
+        const audioKey = await uploadToR2(audioFile, token)
+        await axios.post(`${API_BASE}/admin/songs`, {
+          ...formData,
+          audio_url: audioKey,
+        }, { headers: { Authorization: `Bearer ${token}` } })
+        toast.success('Song uploaded successfully')
       }
+      onSave()
+      onClose()
     } catch (err) {
-      console.error(err)
-      toast.error('Failed to save song')
+      toast.error(err.response?.data?.error || err.message || 'Failed to save song')
     }
   }
 
@@ -618,17 +615,11 @@ function SongModal({ song, onClose, onSave }) {
             className="w-full p-3 rounded bg-gray-700 text-white"
             required
           />
-          <input
-            type="url"
-            placeholder="Audio URL (Link nghe nhạc)"
-            value={formData.audio_url}
-            onChange={(e) => setFormData({ ...formData, audio_url: e.target.value })}
-            className="w-full p-3 rounded bg-gray-700 text-white"
-          />
           {!song && (
             <input
               type="file"
-              onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
+              accept=".mp3,.wav,.ogg,.m4a,.flac,audio/*"
+              onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
               className="w-full p-3 rounded bg-gray-700 text-white"
               required
             />
@@ -1076,6 +1067,7 @@ function MusicPlayer() {
   const [songs, setSongs] = useState([])
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [streamUrl, setStreamUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const audioRef = useRef(null)
 
@@ -1101,17 +1093,23 @@ function MusicPlayer() {
     }
   }
 
-  const handlePlay = (song) => {
-    if (currentSong?.id === song.id && isPlaying) {
-      return
+  const handlePlay = async (song) => {
+    try {
+      const token = localStorage.getItem('token')
+      const { data } = await axios.get(`${API_BASE}/songs/${song.id}/stream`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setCurrentSong(song)
+      setStreamUrl(data.stream_url)
+      setIsPlaying(true)
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Could not play song')
     }
-    setCurrentSong(song)
-    setIsPlaying(true)
   }
 
   const handleStop = () => {
     audioRef.current?.pause()
-    audioRef.current.currentTime = 0
+    if (audioRef.current) audioRef.current.currentTime = 0
     setIsPlaying(false)
   }
 
@@ -1121,13 +1119,13 @@ function MusicPlayer() {
   }
 
   useEffect(() => {
-    if (currentSong && audioRef.current) {
-      audioRef.current.src = currentSong.audio_url || ''
-      if (isPlaying && currentSong.audio_url) {
-        audioRef.current.play()
+    if (audioRef.current && streamUrl) {
+      audioRef.current.src = streamUrl
+      if (isPlaying) {
+        audioRef.current.play().catch(() => toast.error('Could not play song'))
       }
     }
-  }, [currentSong])
+  }, [streamUrl, isPlaying])
 
   if (loading) {
     return (

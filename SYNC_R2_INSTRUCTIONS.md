@@ -4,7 +4,7 @@
 
 ### 1. Sửa lỗi trang trắng
 - **Nguyên nhân:** Frontend cố kết nối đến API backend chưa deploy → không có dữ liệu → trang trắng
-- **Giải pháp:** Tạm thời bật `USE_MOCK_DATA = true` để hiển thị dữ liệu mẫu
+- **Giải pháp:** Tạm thời bật `Mock data mode is disabled; use the authenticated backend API.` để hiển thị dữ liệu mẫu
 - **Đã rebuild:** Frontend đã rebuild với mock data
 - **Đã cập nhật:** File zip `deployment-package/khanhmelody-frontend.zip` đã cập nhật
 

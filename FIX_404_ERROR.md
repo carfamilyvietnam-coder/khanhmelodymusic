@@ -109,7 +109,7 @@ export async function onRequest(context) {
 - [ ] Route /users load: `https://khanhmelodymussic.com/users`
 - [ ] Route /revenue load: `https://khanhmelodymussic.com/revenue`
 - [ ] Route /wallets load: `https://khanhmelodymussic.com/wallets`
-- [ ] Login admin/admin123 hoạt động
+- [ ] Login admin/<configured-admin-password> hoạt động
 - [ ] API kết nối thành công
 
 ## 📝 Tóm tắt

@@ -18,7 +18,7 @@ class Song(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship with transactions
-    transactions = db.relationship('Transaction', backref='song', cascade='all, delete-orphan')
+    transactions = db.relationship('Transaction', backref='song')
     
     def to_dict(self):
         """Convert song object to dictionary"""
@@ -29,7 +29,6 @@ class Song(db.Model):
             'album': self.album,
             'genre': self.genre,
             'price': float(self.price) if self.price else 0,
-            'audio_url': self.audio_url,
             'play_count': self.play_count,
             'download_count': self.download_count,
             'duration': self.duration,

@@ -66,7 +66,7 @@ khanhmelody-backend/
 
 ## 💻 Yêu Cầu Hệ Thống
 
-- **Python**: 3.8 hoặc cao hơn
+- **Python**: 3.9 hoặc cao hơn
 - **PostgreSQL**: 12 hoặc cao hơn
 - **pip**: Python package manager
 - **Virtual Environment** (khuyến nghị)
@@ -139,49 +139,15 @@ copy .env.example .env
 
 ### 2. Cập nhật file .env
 
-```bash
-# Flask Configuration
-FLASK_ENV=development
-FLASK_APP=run.py
-
-# Database Configuration
-DATABASE_URL=postgresql://postgres:your_password@localhost:5432/khanhmelody
-
-# JWT Configuration
-JWT_SECRET_KEY=your-secret-key-change-in-production
-
-# Cloudflare R2 Configuration
-R2_BUCKET_NAME=khanhmelody
-R2_ACCOUNT_ID=your_account_id_here
-R2_ACCESS_KEY_ID=your_access_key_here
-R2_SECRET_ACCESS_KEY=your_secret_key_here
-R2_PUBLIC_URL=https://khanhmelody.r2.dev
-```
-
-**Lưu ý:**
-- Thay `your_password` bằng password PostgreSQL của bạn
-- Thay `your-secret-key` bằng secret key mạnh
-- Cập nhật thông tin R2 từ Cloudflare Dashboard
+Tạo khóa bí mật riêng cho Flask và JWT (mỗi khóa tối thiểu 32 ký tự), cấu hình `DATABASE_URL` và thông tin truy cập R2 trong `.env`. Đặt bucket R2 ở chế độ riêng tư; backend dùng URL ký tạm thời để nghe/tải. `R2_PUBLIC_URL` chỉ dùng để nhận diện các URL cũ trong database. Trong production, đặt `FLASK_ENV=production` và cấu hình `CORS_ORIGINS` thành danh sách origin được phép, phân cách bằng dấu phẩy.
 
 ## 🗄️ Khởi Tạo Database
-
-Chạy script khởi tạo database:
 
 ```bash
 python init_db.py
 ```
 
-Script này sẽ:
-- Tạo tất cả các bảng trong database
-- Tạo admin user mặc định
-- Thêm sample songs
-- Thêm sample users
-
-**Thông tin đăng nhập mặc định:**
-- Admin: `admin` / `admin123`
-- User1: `user1` / `user123`
-- User2: `user2` / `user123`
-- User3: `user3` / `user123`
+Lệnh này tạo schema nhưng không tạo tài khoản mẫu hay mật khẩu mặc định. Để tạo Admin đầu tiên, đặt `INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_EMAIL` và `INITIAL_ADMIN_PASSWORD` (tối thiểu 16 ký tự) trong môi trường. Có thể dùng lại đúng username/email để đặt lại mật khẩu Admin cũ; sau mỗi lần chạy, xóa các biến này.
 
 ## 🏃 Chạy Ứng Dụng
 
@@ -210,7 +176,7 @@ gunicorn -w 4 -b 0.0.0.0:8882 run:app
 ```json
 {
   "username": "admin",
-  "password": "admin123"
+  "password": "<configured-admin-password>"
 }
 ```
 
@@ -511,7 +477,7 @@ Authorization: Bearer <token>
 ```bash
 curl -X POST http://192.168.0.125:8882/api/login \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
+  -d "{\"username\":\"admin\",\"password\":\"<configured-admin-password>\"}"
 ```
 
 **2. Lưu token vào biến:**
@@ -554,7 +520,7 @@ BASE_URL = "http://192.168.0.125:8882"
 # Login
 response = requests.post(f"{BASE_URL}/api/login", json={
     "username": "admin",
-    "password": "admin123"
+    "password": "<configured-admin-password>"
 })
 token = response.json()['access_token']
 

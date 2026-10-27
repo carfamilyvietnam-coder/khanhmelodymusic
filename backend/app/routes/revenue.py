@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 from flask_jwt_extended import jwt_required
 from app import db
 from app.models.transaction import Transaction
+from app.security import admin_required
 from sqlalchemy import func
 from datetime import datetime, timedelta
 
@@ -9,19 +10,27 @@ revenue_bp = Blueprint('revenue', __name__)
 
 @revenue_bp.route('/revenue', methods=['GET'])
 @jwt_required()
+@admin_required
 def get_revenue():
     """Get revenue statistics"""
     try:
         # Calculate total revenue
         total_revenue = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.status == 'completed'
+            Transaction.status == 'completed',
+            Transaction.transaction_type == 'purchase',
         ).scalar() or 0
         
         # Count total transactions
-        total_transactions = Transaction.query.filter_by(status='completed').count()
+        total_transactions = Transaction.query.filter_by(
+            status='completed',
+            transaction_type='purchase',
+        ).count()
         
         # Get recent transactions
-        recent_transactions = Transaction.query.filter_by(status='completed').order_by(
+        recent_transactions = Transaction.query.filter_by(
+            status='completed',
+            transaction_type='purchase',
+        ).order_by(
             Transaction.created_at.desc()
         ).limit(100).all()
         
@@ -33,6 +42,7 @@ def get_revenue():
             
             month_revenue = db.session.query(func.sum(Transaction.amount)).filter(
                 Transaction.status == 'completed',
+                Transaction.transaction_type == 'purchase',
                 Transaction.created_at >= month_start,
                 Transaction.created_at < month_end
             ).scalar() or 0
@@ -49,12 +59,15 @@ def get_revenue():
             'monthly_revenue': monthly_revenue[::-1]  # Reverse to show oldest to newest
         }), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Could not retrieve revenue')
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @revenue_bp.route('/revenue/songs', methods=['GET'])
 @jwt_required()
+@admin_required
 def get_revenue_by_song():
     """Get revenue breakdown by song"""
     try:
@@ -70,7 +83,8 @@ def get_revenue_by_song():
         ).join(
             Transaction, Song.id == Transaction.song_id
         ).filter(
-            Transaction.status == 'completed'
+            Transaction.status == 'completed',
+            Transaction.transaction_type == 'purchase',
         ).group_by(
             Song.id
         ).order_by(
@@ -89,5 +103,7 @@ def get_revenue_by_song():
         
         return jsonify(result), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Could not retrieve song revenue')
+        return jsonify({'error': 'Internal server error'}), 500

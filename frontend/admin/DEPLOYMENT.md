@@ -27,8 +27,8 @@ VITE_DOMAIN=khanhmelodymussic.com
 # Cloudflare R2 Configuration
 VITE_R2_BUCKET_NAME=khanhmelody
 VITE_R2_ACCOUNT_ID=your_account_id_here
-VITE_R2_ACCESS_KEY_ID=your_access_key_here
-VITE_R2_SECRET_ACCESS_KEY=your_secret_key_here
+# R2 credentials must be configured on the backend only.
+# Never expose R2 credentials to browser code.
 VITE_R2_PUBLIC_URL=https://khanhmelody.r2.dev
 ```
 
@@ -62,5 +62,5 @@ The backend should implement:
 - `/api/upload/r2` - R2 file upload endpoint (generates presigned URLs)
 
 ## Development vs Production
-- Set `USE_MOCK_DATA = true` in `App.jsx` for development without backend
+- Set `Mock data mode is disabled; use the authenticated backend API.` in `App.jsx` for development without backend
 - Set `USE_MOCK_DATA = false` when backend is available

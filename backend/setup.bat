@@ -10,7 +10,7 @@ cd /d D:\khanhmelody\backend
 echo [1/7] Checking Python installation...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ✗ Python not found. Please install Python 3.8 or higher from https://www.python.org/
+    echo ✗ Python not found. Please install Python 3.9 or higher from https://www.python.org/
     pause
     exit /b 1
 )
@@ -49,7 +49,6 @@ echo ✓ Dependencies installed
 
 echo.
 echo [6/7] Setting up PostgreSQL database...
-set PGPASSWORD=postgres
 psql -U postgres -c "CREATE DATABASE khanhmelody;" >nul 2>&1
 if %errorlevel% neq 0 (
     echo Database may already exist or connection failed
@@ -59,7 +58,7 @@ if %errorlevel% neq 0 (
 echo ✓ Database setup complete
 
 echo.
-echo [7/7] Initializing database with sample data...
+echo [7/7] Initializing database and optional first administrator...
 python init_db.py
 echo ✓ Database initialized
 
@@ -68,11 +67,7 @@ echo ========================================
 echo   Setup Completed Successfully!
 echo ========================================
 echo.
-echo Default Login Credentials:
-echo   Admin: admin / admin123
-echo   User1: user1 / user123
-echo   User2: user2 / user123
-echo   User3: user3 / user123
+echo No default account is created. Configure INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, and INITIAL_ADMIN_PASSWORD in .env before initialization to create the first administrator.
 echo.
 echo To start the backend server, run:
 echo   start_backend.bat

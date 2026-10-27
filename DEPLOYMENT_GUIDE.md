@@ -19,7 +19,7 @@ FLASK_APP=run.py
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/khanhmelody
 
 # JWT Configuration
-JWT_SECRET_KEY=khanhmelody-secret-key-change-in-production-2024
+JWT_SECRET_KEY=<generate-a-random-secret-at-least-32-characters>
 
 # Cloudflare R2 Configuration
 R2_BUCKET_NAME=khanhmelody
@@ -185,13 +185,13 @@ curl https://api.khanhmelodymussic.com/api/login
 # Test với credentials
 curl -X POST https://api.khanhmelodymussic.com/api/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"admin","password":"<configured-admin-password>"}'
 ```
 
 ### 6.2 Test Frontend
 
 Mở browser: `https://khanhmelodymussic.com`
-- Login với admin/admin123
+- Login với admin/<configured-admin-password>
 - Test các chức năng: Songs, Users, Revenue, Wallets
 
 ### 6.3 Test R2 Upload

@@ -9,7 +9,7 @@ This guide will help you set up the entire KhanhMelody system (Backend + Fronten
 Before starting, ensure you have:
 
 - [ ] **Windows 10/11** operating system
-- [ ] **Python 3.8 or higher** installed
+- [ ] **Python 3.9 or higher** installed
   - Download: https://www.python.org/downloads/
   - IMPORTANT: Check "Add Python to PATH" during installation
 - [ ] **PostgreSQL** installed
@@ -71,7 +71,7 @@ Before starting, ensure you have:
 
 3. **Update frontend to use real backend**
    - Open `src\App.jsx`
-   - Find line: `const USE_MOCK_DATA = true`
+   - Find line: `const Mock data mode is disabled; use the authenticated backend API.`
    - Change to: `const USE_MOCK_DATA = false`
    - Save file
 
@@ -82,7 +82,7 @@ Before starting, ensure you have:
 
 5. **Open frontend in browser**
    - URL will be shown (usually http://localhost:5173)
-   - Login with: `admin` / `admin123`
+   - Login with: `admin` / `<configured-admin-password>`
 
 ### Step 4: Verify Complete System
 
@@ -123,7 +123,7 @@ Your KhanhMelody system is now fully operational:
 
 | Role | Username | Password |
 |------|----------|----------|
-| Admin | admin | admin123 |
+| Admin | admin | <configured-admin-password> |
 | User | user1 | user123 |
 | User | user2 | user123 |
 | User | user3 | user123 |

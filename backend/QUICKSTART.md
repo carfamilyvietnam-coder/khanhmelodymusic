@@ -3,7 +3,7 @@
 ## 🚀 One-Click Setup (Windows)
 
 ### Prerequisites
-- **Python 3.8+** - Download from https://www.python.org/ (Check "Add Python to PATH" during installation)
+- **Python 3.9+** - Download from https://www.python.org/ (Check "Add Python to PATH" during installation)
 - **PostgreSQL** - Download from https://www.postgresql.org/download/windows/
   - Set password to: `postgres`
   - Ensure PostgreSQL service is running
@@ -48,7 +48,7 @@ After setup, you can login with:
 
 | Username | Password | Role |
 |----------|----------|------|
-| admin | admin123 | Admin |
+| admin | <configured-admin-password> | Admin |
 | user1 | user123 | User |
 | user2 | user123 | User |
 | user3 | user123 | User |

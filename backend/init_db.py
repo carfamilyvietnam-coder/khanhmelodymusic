@@ -1,171 +1,47 @@
-"""
-Database initialization script for KhanhMelody
-Run this script to create the database and initial data
-"""
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from app import create_app, db
 from app.models.user import User
-from app.models.song import Song
 from app.models.wallet import Wallet
-from app.models.transaction import Transaction
+
 
 def init_database():
-    """Initialize database with tables and sample data"""
-    app = create_app()
-    
+    app = create_app(os.getenv('FLASK_ENV', 'production'))
     with app.app_context():
-        # Create all tables
-        print("Creating database tables...")
         db.create_all()
-        print("Tables created successfully!")
-        
-        # Check if admin user already exists
-        admin = User.query.filter_by(username='admin').first()
-        
-        if not admin:
-            print("Creating admin user...")
-            admin = User(
-                username='admin',
-                email='admin@khanhmelody.com',
-                role='admin',
-                is_active=True
-            )
-            admin.set_password('admin123')
-            db.session.add(admin)
+
+        username = os.getenv('INITIAL_ADMIN_USERNAME')
+        email = os.getenv('INITIAL_ADMIN_EMAIL')
+        password = os.getenv('INITIAL_ADMIN_PASSWORD')
+        if not any((username, email, password)):
+            print('Database initialized. No administrator was created; configure INITIAL_ADMIN_* to bootstrap one.')
+            return
+        if not all((username, email, password)) or len(password) < 16:
+            raise RuntimeError('Set INITIAL_ADMIN_USERNAME, INITIAL_ADMIN_EMAIL, and a 16+ character INITIAL_ADMIN_PASSWORD together.')
+        existing_admin = User.query.filter_by(role='admin').first()
+        if existing_admin:
+            if existing_admin.username != username.strip() or existing_admin.email.lower() != email.strip().lower():
+                raise RuntimeError('An administrator already exists. Use its username and email to rotate its password.')
+            existing_admin.set_password(password)
             db.session.commit()
-            
-            # Create wallet for admin
-            admin_wallet = Wallet(user_id=admin.id, balance=0)
-            db.session.add(admin_wallet)
-            db.session.commit()
-            print("Admin user created successfully!")
-            print("Username: admin")
-            print("Password: admin123")
-        else:
-            print("Admin user already exists")
-        
-        # Add sample songs if none exist
-        if Song.query.count() == 0:
-            print("Adding sample songs...")
-            sample_songs = [
-                Song(
-                    title='Em Của Ngày Hôm Qua',
-                    artist='Sơn Tùng M-TP',
-                    album='m-tp',
-                    genre='Pop',
-                    price=50000,
-                    audio_url='https://khanhmelody.r2.dev/songs/song1.mp3',
-                    play_count=1500000,
-                    download_count=50000,
-                    duration=240
-                ),
-                Song(
-                    title='Hoa Hải Đường',
-                    artist='Jack',
-                    album='Jack',
-                    genre='Pop',
-                    price=45000,
-                    audio_url='https://khanhmelody.r2.dev/songs/song2.mp3',
-                    play_count=2000000,
-                    download_count=80000,
-                    duration=210
-                ),
-                Song(
-                    title='Bước Qua Mùa Cô Đơn',
-                    artist='Vũ.',
-                    album='Vũ.',
-                    genre='Ballad',
-                    price=40000,
-                    audio_url='https://khanhmelody.r2.dev/songs/song3.mp3',
-                    play_count=3000000,
-                    download_count=120000,
-                    duration=255
-                ),
-                Song(
-                    title='Có Chăng Chỉ Là Giấc Mơ',
-                    artist='Reddy',
-                    album='Reddy',
-                    genre='Pop',
-                    price=35000,
-                    audio_url='https://khanhmelody.r2.dev/songs/song4.mp3',
-                    play_count=800000,
-                    download_count=30000,
-                    duration=195
-                ),
-                Song(
-                    title='Muốn Nói Với Em',
-                    artist='Hoàng Dũng',
-                    album='Hoàng Dũng',
-                    genre='Ballad',
-                    price=40000,
-                    audio_url='https://khanhmelody.r2.dev/songs/song5.mp3',
-                    play_count=1200000,
-                    download_count=45000,
-                    duration=225
-                )
-            ]
-            
-            for song in sample_songs:
-                db.session.add(song)
-            
-            db.session.commit()
-            print(f"Added {len(sample_songs)} sample songs!")
-        else:
-            print("Sample songs already exist")
-        
-        # Add sample users if none exist
-        if User.query.filter_by(role='user').count() == 0:
-            print("Adding sample users...")
-            sample_users = [
-                {
-                    'username': 'user1',
-                    'email': 'user1@example.com',
-                    'password': 'user123',
-                    'wallet_balance': 500000
-                },
-                {
-                    'username': 'user2',
-                    'email': 'user2@example.com',
-                    'password': 'user123',
-                    'wallet_balance': 250000
-                },
-                {
-                    'username': 'user3',
-                    'email': 'user3@example.com',
-                    'password': 'user123',
-                    'wallet_balance': 100000,
-                    'is_active': False
-                }
-            ]
-            
-            for user_data in sample_users:
-                user = User(
-                    username=user_data['username'],
-                    email=user_data['email'],
-                    role='user',
-                    is_active=user_data.get('is_active', True)
-                )
-                user.set_password(user_data['password'])
-                db.session.add(user)
-                db.session.commit()
-                
-                # Create wallet
-                wallet = Wallet(
-                    user_id=user.id,
-                    balance=user_data['wallet_balance']
-                )
-                db.session.add(wallet)
-                db.session.commit()
-            
-            print(f"Added {len(sample_users)} sample users!")
-        else:
-            print("Sample users already exist")
-        
-        print("\nDatabase initialization completed successfully!")
-        print("\nLogin credentials:")
-        print("Admin: admin / admin123")
-        print("User1: user1 / user123")
-        print("User2: user2 / user123")
-        print("User3: user3 / user123")
+            print('Administrator password updated. Remove the bootstrap environment variables now.')
+            return
+        if User.query.filter(
+                (User.username == username) | (User.email == email.lower())).first():
+            raise RuntimeError('The requested initial administrator username or email is already in use.')
+
+        admin = User(username=username.strip(), email=email.strip().lower(), role='admin', is_active=True)
+        admin.set_password(password)
+        db.session.add(admin)
+        db.session.flush()
+        db.session.add(Wallet(user_id=admin.id, balance=0))
+        db.session.commit()
+        print('Initial administrator created. Remove the bootstrap environment variables now.')
+
 
 if __name__ == '__main__':
     init_database()

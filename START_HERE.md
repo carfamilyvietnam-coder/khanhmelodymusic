@@ -32,7 +32,7 @@
 
 1. **Login to Admin Panel**:
    - Username: `admin`
-   - Password: `admin123`
+   - Password: `<configured-admin-password>`
 
 2. **Explore Features**:
    - Dashboard - Overview statistics
@@ -58,7 +58,7 @@
 
 | Username | Password | Role |
 |----------|----------|------|
-| admin | admin123 | Admin (full access) |
+| admin | <configured-admin-password> | Admin (full access) |
 | user1 | user123 | User (limited access) |
 | user2 | user123 | User (limited access) |
 | user3 | user123 | User (limited access) |

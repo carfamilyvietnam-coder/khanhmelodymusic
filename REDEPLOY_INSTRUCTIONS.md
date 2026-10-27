@@ -65,7 +65,7 @@ Cloudflare sẽ tự động deploy. Đợi khoảng 30-60 giây.
    - Users: `https://khanhmelodymussic.com/users`
    - Revenue: `https://khanhmelodymussic.com/revenue`
    - Wallets: `https://khanhmelodymussic.com/wallets`
-3. Login: admin / admin123
+3. Login: admin / <configured-admin-password>
 4. Kiểm tra các chức năng
 
 ## 🔍 Nếu vẫn còn lỗi 404
@@ -106,7 +106,7 @@ export async function onRequest(context) {
 - [ ] Website load tại https://khanhmelodymussic.com
 - [ ] Không còn lỗi 404
 - [ ] Các route /songs, /users, /revenue, /wallets load bình thường
-- [ ] Login admin/admin123 thành công
+- [ ] Login admin/<configured-admin-password> thành công
 - [ ] Dashboard hiển thị dữ liệu
 - [ ] Các chức năng hoạt động
 

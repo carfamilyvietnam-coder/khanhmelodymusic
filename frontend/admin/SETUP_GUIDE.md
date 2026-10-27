@@ -51,8 +51,8 @@ VITE_DOMAIN=khanhmelodymussic.com
 # Cloudflare R2 Configuration
 VITE_R2_BUCKET_NAME=khanhmelody
 VITE_R2_ACCOUNT_ID=thay_bang_account_id_cua_ban
-VITE_R2_ACCESS_KEY_ID=thay_bang_access_key_id
-VITE_R2_SECRET_ACCESS_KEY=thay_bang_secret_access_key
+# R2 credentials must be configured on the backend only.
+# Never expose R2 credentials to browser code.
 VITE_R2_PUBLIC_URL=https://khanhmelody.r2.dev
 ```
 
@@ -275,7 +275,7 @@ khanhmelody-backend/
 # Request body
 {
   "username": "admin",
-  "password": "admin123"
+  "password": "<configured-admin-password>"
 }
 
 # Response
@@ -400,7 +400,7 @@ def login():
     password = data.get('password')
     
     # TODO: Verify with database
-    if username == 'admin' and password == 'admin123':
+    if username == 'admin' and password == '<configured-admin-password>':
         access_token = create_access_token(identity=username)
         return jsonify({
             'access_token': access_token,
@@ -495,7 +495,7 @@ node server.js
 # Test login
 curl -X POST http://192.168.0.125:8882/api/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"admin","password":"<configured-admin-password>"}'
 
 # Test songs endpoint (sau khi có token)
 curl http://192.168.0.125:8882/api/admin/songs \

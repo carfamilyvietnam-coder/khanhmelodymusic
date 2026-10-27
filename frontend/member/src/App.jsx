@@ -1,210 +1,324 @@
-import React, { useState, useEffect } from 'react'
-import { HashRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { HashRouter as Router } from 'react-router-dom'
 import axios from 'axios'
 import toast, { Toaster } from 'react-hot-toast'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.khanhmelodymussic.com/api'
-const USE_MOCK_DATA = true
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+  || (import.meta.env.DEV ? '/api' : 'https://api.khanhmelodymussic.com/api')
 
-const MOCK_SONGS = [
-  { id: 1, title: 'Em Của Ngày Hôm Qua', artist: 'Sơn Tùng M-TP', album: 'm-tp', genre: 'Pop', price: 50000, play_count: 1500000, download_count: 50000, audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 2, title: 'Hoa Hải Đường', artist: 'Jack', album: 'Jack', genre: 'Pop', price: 45000, play_count: 2000000, download_count: 80000, audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 3, title: 'Bước Qua Mùa Cô Đơn', artist: 'Vũ.', album: 'Vũ.', genre: 'Ballad', price: 40000, play_count: 3000000, download_count: 120000, audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 4, title: 'Có Chăng Chỉ Là Giấc Mơ', artist: 'Reddy', album: 'Reddy', genre: 'Pop', price: 35000, play_count: 800000, download_count: 30000, audio_url: '' },
-  { id: 5, title: 'Muốn Nói Với Em', artist: 'Hoàng Dũng', album: 'Hoàng Dũng', genre: 'Ballad', price: 40000, play_count: 1200000, download_count: 45000, audio_url: '' },
-  { id: 6, title: 'Chạm Đáy Nỗi Đau', artist: 'Sơn Tùng M-TP', album: 'm-tp', genre: 'Pop', price: 50000, play_count: 5000000, download_count: 200000, audio_url: '' },
-  { id: 7, title: 'Nếu Ngày Ấy', artist: 'Bùi Lan Hương', album: 'NHL', genre: 'Ballad', price: 30000, play_count: 600000, download_count: 25000, audio_url: '' },
-  { id: 8, title: 'Đi Để Trở Về', artist: 'Soobin Hoàng Sơn', album: 'Soobin', genre: 'Pop', price: 45000, play_count: 900000, download_count: 35000, audio_url: '' },
-  { id: 9, title: 'Bốn Chữ Lắm', artist: 'Đen Vâu', album: 'Đen', genre: 'Hip Hop', price: 40000, play_count: 2500000, download_count: 90000, audio_url: '' },
-  { id: 10, title: 'Lối Nhỏ', artist: 'Đen Vâu', album: 'Đen', genre: 'Hip Hop', price: 40000, play_count: 1800000, download_count: 70000, audio_url: '' },
-]
-
-const QR_CODE_URL = 'https://img.vietqr.io/image/vib-197019779-compact2.png?amount=50000&addInfo=KhanhMelody+Nap+tien'
+function api(token) {
+  return axios.create({
+    baseURL: API_BASE,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+}
 
 function App() {
+  const [token, setToken] = useState(() => localStorage.getItem('accessToken') || '')
+  const [user, setUser] = useState(null)
+  const [songs, setSongs] = useState([])
+  const [mySongs, setMySongs] = useState([])
+  const [loading, setLoading] = useState(Boolean(token))
+  const [authMode, setAuthMode] = useState('login')
+  const [authForm, setAuthForm] = useState({ username: '', email: '', password: '' })
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedSong, setSelectedSong] = useState(null)
+  const [activeTab, setActiveTab] = useState('all')
+  const [playingUrl, setPlayingUrl] = useState('')
+
+  useEffect(() => {
+    if (!token) {
+      return
+    }
+    let active = true
+    api(token).get('/me')
+      .then(({ data }) => {
+        if (active) setUser(data)
+      })
+      .catch(() => {
+        if (!active) return
+        localStorage.removeItem('accessToken')
+        setToken('')
+        setUser(null)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    if (!token || !user) return
+    Promise.all([
+      api(token).get('/songs'),
+      api(token).get('/my-downloads'),
+    ])
+      .then(([songResponse, downloadsResponse]) => {
+        setSongs(songResponse.data)
+        setMySongs(downloadsResponse.data)
+      })
+      .catch(() => toast.error('Không thể tải dữ liệu từ máy chủ'))
+  }, [token, user])
+
+  const handleAuth = async (event) => {
+    event.preventDefault()
+    try {
+      if (authMode === 'register') {
+        await api().post('/register', authForm)
+        toast.success('Đăng ký thành công. Hãy đăng nhập.')
+        setAuthMode('login')
+        return
+      }
+      const { data } = await api().post('/login', {
+        username: authForm.username,
+        password: authForm.password,
+      })
+      localStorage.setItem('accessToken', data.access_token)
+      setUser(data.user)
+      setToken(data.access_token)
+      toast.success(`Xin chào ${data.user.username}`)
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Không thể xác thực tài khoản')
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken')
+    setToken('')
+    setUser(null)
+    setSongs([])
+    setMySongs([])
+    setPlayingUrl('')
+  }
+
+  const handlePlay = async (song) => {
+    try {
+      const { data } = await api(token).get(`/songs/${song.id}/stream`)
+      setPlayingUrl(data.stream_url)
+      toast.success(`Đang phát: ${song.title}`)
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Không thể phát bài hát')
+    }
+  }
+
+  const handleDownload = (song) => {
+    if (mySongs.some((purchased) => purchased.id === song.id) || Number(song.price) <= 0) {
+      completeDownload(song)
+      return
+    }
+    setSelectedSong(song)
+    setShowPaymentModal(true)
+  }
+
+  const completeDownload = async (song) => {
+    const downloadTab = window.open('about:blank', '_blank')
+    try {
+      const { data } = await api(token).post(`/songs/${song.id}/download`)
+      if (downloadTab) {
+        downloadTab.opener = null
+        downloadTab.location = data.stream_url
+      } else {
+        window.location.assign(data.stream_url)
+      }
+      const { data: downloads } = await api(token).get('/my-downloads')
+      setMySongs(downloads)
+      setShowPaymentModal(false)
+      toast.success('Đã xác nhận quyền tải bài hát')
+    } catch (error) {
+      downloadTab?.close()
+      toast.error(error.response?.data?.error || 'Không thể hoàn tất tải bài hát')
+    }
+  }
+
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-pink-900 text-white">
         <Toaster position="top-right" />
-        <Routes>
-          <Route path="/" element={<MemberPage />} />
-        </Routes>
+        {loading ? (
+          <main className="min-h-screen grid place-items-center">Đang kiểm tra phiên đăng nhập...</main>
+        ) : !user ? (
+          <main className="min-h-screen grid place-items-center p-4">
+            <form onSubmit={handleAuth} className="w-full max-w-md rounded-2xl bg-gray-800 p-8 shadow-xl">
+              <h1 className="mb-2 text-3xl font-bold text-pink-400">KhanhMelody</h1>
+              <h2 className="mb-6 text-xl">{authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản thành viên'}</h2>
+              <label className="mb-4 block">
+                <span className="mb-1 block">Tên đăng nhập</span>
+                <input
+                  required
+                  autoComplete="username"
+                  className="w-full rounded-lg bg-gray-700 px-3 py-2"
+                  value={authForm.username}
+                  onChange={(event) => setAuthForm({ ...authForm, username: event.target.value })}
+                />
+              </label>
+              {authMode === 'register' && (
+                <label className="mb-4 block">
+                  <span className="mb-1 block">Email</span>
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    className="w-full rounded-lg bg-gray-700 px-3 py-2"
+                    value={authForm.email}
+                    onChange={(event) => setAuthForm({ ...authForm, email: event.target.value })}
+                  />
+                </label>
+              )}
+              <label className="mb-6 block">
+                <span className="mb-1 block">Mật khẩu</span>
+                <input
+                  required
+                  minLength={8}
+                  type="password"
+                  autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                  className="w-full rounded-lg bg-gray-700 px-3 py-2"
+                  value={authForm.password}
+                  onChange={(event) => setAuthForm({ ...authForm, password: event.target.value })}
+                />
+              </label>
+              <button type="submit" className="w-full rounded-lg bg-pink-600 py-3 font-bold hover:bg-pink-700">
+                {authMode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                className="mt-4 w-full text-sm text-pink-300 hover:text-pink-200"
+              >
+                {authMode === 'login' ? 'Chưa có tài khoản? Đăng ký thành viên' : 'Đã có tài khoản? Đăng nhập'}
+              </button>
+            </form>
+          </main>
+        ) : (
+          <MemberPage
+            user={user}
+            songs={songs}
+            mySongs={mySongs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            playingUrl={playingUrl}
+            onPlay={handlePlay}
+            onDownload={handleDownload}
+            onLogout={handleLogout}
+          />
+        )}
+        {showPaymentModal && selectedSong && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4">
+            <div className="w-full max-w-sm rounded-xl bg-gray-800 p-6 shadow-2xl">
+              <h2 className="mb-3 text-xl font-bold text-pink-400">Mua bài hát</h2>
+              <p className="mb-2">{selectedSong.title}</p>
+              <p className="mb-5 text-green-300">
+                {Number(selectedSong.price).toLocaleString('vi-VN')}đ sẽ được trừ từ ví của bạn.
+              </p>
+              <p className="mb-5 text-sm text-gray-300">
+                Giao dịch được máy chủ kiểm tra. Không xác nhận thanh toán chỉ bằng thao tác trên trình duyệt.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => completeDownload(selectedSong)}
+                  className="flex-1 rounded-lg bg-green-600 py-2 font-semibold hover:bg-green-700"
+                >
+                  Xác nhận mua
+                </button>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 rounded-lg bg-gray-600 py-2 font-semibold hover:bg-gray-500"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Router>
   )
 }
 
-function MemberPage() {
-  const [songs, setSongs] = useState([])
-  const [mySongs, setMySongs] = useState([])
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [selectedSong, setSelectedSong] = useState(null)
-  const [activeTab, setActiveTab] = useState('all')
-  const [purchasedIds, setPurchasedIds] = useState(JSON.parse(localStorage.getItem('purchasedSongs') || '[]'))
-
-  useEffect(() => {
-    fetchSongs()
-    setMySongs(MOCK_SONGS.filter(s => purchasedIds.includes(s.id)))
-  }, [purchasedIds])
-
-  const fetchSongs = async () => {
-    try {
-      if (USE_MOCK_DATA) {
-        setSongs(MOCK_SONGS)
-      } else {
-        const res = await axios.get(`${API_BASE}/songs`)
-        setSongs(res.data)
-      }
-    } catch (err) {
-      console.error(err)
-      setSongs(MOCK_SONGS)
-    }
-  }
-
-
-  const handlePlay = (song) => {
-    if (song.audio_url) {
-      toast.success(`Đang phát: ${song.title}`)
-    } else {
-      toast.error('Bài hát chưa có file audio')
-    }
-  }
-
-  const handleDownload = (song) => {
-    if (purchasedIds.includes(song.id)) {
-      toast.success('Bạn đã sở hữu bài hát này!')
-      return
-    }
-
-    setSelectedSong(song)
-    setShowPaymentModal(true)
-  }
-
-  const handlePayment = async () => {
-    const newPurchasedIds = [...purchasedIds, selectedSong.id]
-    localStorage.setItem('purchasedSongs', JSON.stringify(newPurchasedIds))
-    setPurchasedIds(newPurchasedIds)
-    setShowPaymentModal(false)
-    toast.success('Thanh toán thành công! Bạn đã tải được bài hát')
-  }
-
+function MemberPage({ user, songs, mySongs, activeTab, setActiveTab, playingUrl, onPlay, onDownload, onLogout }) {
   const displaySongs = activeTab === 'all' ? songs : mySongs
 
   return (
     <div className="min-h-screen pb-20">
       <nav className="bg-gray-800 p-4 shadow-lg">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-pink-500">KhanhMelody</h1>
-            <p className="text-yellow-400 text-xs sm:text-sm font-semibold">Nghe nhạc bản quyền</p>
+            <h1 className="text-xl font-bold text-pink-500 sm:text-2xl">KhanhMelody</h1>
+            <p className="text-xs font-semibold text-yellow-400 sm:text-sm">Xin chào, {user.username}</p>
           </div>
-          <a href="/admin" target="_blank" rel="noopener noreferrer" className="bg-purple-600 px-3 py-2 rounded hover:bg-purple-700 font-semibold text-xs sm:text-sm">
-            Trang Quản Trị
-          </a>
+          <button onClick={onLogout} className="rounded bg-gray-700 px-3 py-2 text-sm hover:bg-gray-600">
+            Đăng xuất
+          </button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="flex gap-2 mb-4">
+      <main className="mx-auto max-w-6xl p-4">
+        {playingUrl && (
+          <audio controls autoPlay src={playingUrl} className="mb-5 w-full" onError={() => toast.error('Không thể tải luồng âm thanh')} />
+        )}
+        <div className="mb-4 flex gap-2">
           <button
             onClick={() => setActiveTab('all')}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm ${activeTab === 'all' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${activeTab === 'all' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
           >
-            Tất cả
+            Tất cả bài hát
           </button>
           <button
             onClick={() => setActiveTab('my')}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm ${activeTab === 'my' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${activeTab === 'my' ? 'bg-pink-600' : 'bg-gray-700 hover:bg-gray-600'}`}
           >
-            Của tôi ({mySongs.length})
+            Đã mua ({mySongs.length})
           </button>
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full bg-gray-800 rounded-lg overflow-hidden">
-            <thead>
-              <tr className="bg-gray-700">
-                <th className="px-4 py-3 text-left text-sm font-semibold">Bài hát</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold hidden md:table-cell">Ca sĩ</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold hidden lg:table-cell">Thể loại</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold">Giá</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displaySongs.map((song) => (
-                <tr key={song.id} className="border-t border-gray-700 hover:bg-gray-750">
-                  <td className="px-4 py-3">
-                    <div className="font-semibold text-pink-400">{song.title}</div>
-                    <div className="text-gray-400 text-xs md:hidden">{song.artist}</div>
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell">{song.artist}</td>
-                  <td className="px-4 py-3 hidden lg:table-cell">{song.genre}</td>
-                  <td className="px-4 py-3 text-center font-semibold text-green-400">
-                    {song.price.toLocaleString()}đ
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={() => handlePlay(song)}
-                        className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-xs font-semibold"
-                      >
-                        Nghe
-                      </button>
-                      <button
-                        onClick={() => handleDownload(song)}
-                        className={`px-3 py-1 rounded text-xs font-semibold ${purchasedIds.includes(song.id) ? 'bg-green-800' : 'bg-green-600 hover:bg-green-700'}`}
-                      >
-                        {purchasedIds.includes(song.id) ? 'Đã mua' : 'Mua'}
-                      </button>
-                    </div>
-                  </td>
+        {displaySongs.length === 0 ? (
+          <p className="rounded-lg bg-gray-800 p-6 text-center text-gray-300">
+            {activeTab === 'all' ? 'Chưa có bài hát nào.' : 'Bạn chưa mua bài hát nào.'}
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full overflow-hidden rounded-lg bg-gray-800">
+              <thead>
+                <tr className="bg-gray-700">
+                  <th className="px-4 py-3 text-left text-sm font-semibold">Bài hát</th>
+                  <th className="hidden px-4 py-3 text-left text-sm font-semibold md:table-cell">Ca sĩ</th>
+                  <th className="hidden px-4 py-3 text-left text-sm font-semibold lg:table-cell">Thể loại</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold">Giá</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold">Hành động</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-3 text-pink-500">Thanh toán</h3>
-            <p className="text-gray-300 mb-2 text-sm">
-              Bài hát: <span className="text-pink-400 font-semibold">{selectedSong?.title}</span>
-            </p>
-            <p className="text-gray-300 mb-4">
-              Số tiền: <span className="text-green-400 font-bold text-lg">{selectedSong?.price?.toLocaleString() || '50.000'}đ</span>
-            </p>
-            <div className="bg-white p-3 rounded-lg mb-4">
-              <img src={QR_CODE_URL} alt="QR Code" className="w-full h-auto" />
-              <p className="text-gray-800 text-center mt-2 text-xs font-semibold">
-                QUÉT MÃ QR ĐỂ THANH TOÁN
-              </p>
-              <p className="text-gray-600 text-center text-xs mt-1">
-                TRẦN XUÂN KHÁNH - VIB - 197019779
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handlePayment}
-                className="flex-1 bg-green-600 py-2 rounded-lg hover:bg-green-700 font-bold text-sm"
-              >
-                Đã thanh toán
-              </button>
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                className="flex-1 bg-gray-600 py-2 rounded-lg hover:bg-gray-700 font-bold text-sm"
-              >
-                Hủy
-              </button>
-            </div>
+              </thead>
+              <tbody>
+                {displaySongs.map((song) => {
+                  const purchased = mySongs.some((entry) => entry.id === song.id)
+                  return (
+                    <tr key={song.id} className="border-t border-gray-700 hover:bg-gray-750">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-pink-400">{song.title}</div>
+                        <div className="text-xs text-gray-400 md:hidden">{song.artist}</div>
+                      </td>
+                      <td className="hidden px-4 py-3 md:table-cell">{song.artist}</td>
+                      <td className="hidden px-4 py-3 lg:table-cell">{song.genre}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-green-400">
+                        {Number(song.price || 0).toLocaleString('vi-VN')}đ
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center gap-2">
+                          <button onClick={() => onPlay(song)} className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold hover:bg-blue-700">
+                            Nghe
+                          </button>
+                          <button onClick={() => onDownload(song)} className="rounded bg-green-600 px-3 py-1 text-xs font-semibold hover:bg-green-700">
+                            {purchased ? 'Tải lại' : Number(song.price) <= 0 ? 'Tải miễn phí' : 'Mua / tải'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   )
 }
-
 
 export default App

@@ -9,6 +9,13 @@ export default defineConfig({
     assetsDir: 'assets',
   },
   server: {
-    historyApiFallback: true,
+    port: 5174,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8882',
+        changeOrigin: true,
+      },
+    },
   },
 })

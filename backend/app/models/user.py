@@ -9,7 +9,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False, index=True)
     email = db.Column(db.String(100), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), default='user', nullable=False)
+    role = db.Column(db.String(20), default='member', nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -37,7 +37,7 @@ class User(db.Model):
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'wallet_balance': self.wallet.balance if self.wallet else 0
+            'wallet_balance': float(self.wallet.balance) if self.wallet and self.wallet.balance else 0
         }
     
     def __repr__(self):
