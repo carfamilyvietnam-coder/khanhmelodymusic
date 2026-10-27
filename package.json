@@ -2,6 +2,6 @@
   "name": "khanhmelody",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd frontend/admin && npm install && npm run build"
+    "build": "cd frontend/member && npm install && npm run build"
   }
 }
