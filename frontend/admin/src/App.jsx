@@ -84,6 +84,9 @@ function App() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-gray-300">Welcome, {user.username}</span>
+              <a href="/" target="_blank" rel="noopener noreferrer" className="bg-pink-600 px-4 py-2 rounded hover:bg-pink-700">
+                Trang Thành Viên
+              </a>
               <button onClick={logout} className="bg-red-600 px-4 py-2 rounded hover:bg-red-700">
                 Logout
               </button>
