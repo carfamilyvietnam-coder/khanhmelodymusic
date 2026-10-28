@@ -14,7 +14,7 @@
 
 ## Production
 
-The Admin console is deployed separately from the Member site at `https://khanhmelody-admin.pages.dev`. Its Cloudflare Pages project must build from `frontend/admin` and publish that directory's `dist` output. The production API is `https://api.khanhmelodymussic.com/api`.
+The Admin console is deployed separately from the Member site at `https://khanhmelody-admin.pages.dev`. Set its Cloudflare Pages project root to the repository root, build command to `npm run build:admin`, and output directory to `frontend/admin/dist`. The separate `build:admin` command prevents the Pages project from building the Member site. The production API is `https://api.khanhmelodymussic.com/api`.
 
 The Admin login accepts the existing Admin account only. Public registration creates Member accounts and cannot grant administrator access.
 

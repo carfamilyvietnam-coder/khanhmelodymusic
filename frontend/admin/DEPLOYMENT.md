@@ -4,12 +4,12 @@
 
 - **Pages project:** `khanhmelody-admin`
 - **Production URL:** `https://khanhmelody-admin.pages.dev`
-- **Build directory:** `frontend/admin`
-- **Build command:** `npm ci && npm run build`
-- **Build output directory:** `dist`
+- **Root directory:** repository root
+- **Build command:** `npm run build:admin`
+- **Build output directory:** `frontend/admin/dist`
 - **Production API:** `https://api.khanhmelodymussic.com/api`
 
-The Admin Pages project must build `frontend/admin`; it must not reuse the Member project's `frontend/member` output.
+The repository root is intentional: it contains the `build:admin` script, which installs and builds only `frontend/admin`. Do not use the root `npm run build` command for this Pages project; that command builds the Member site into `frontend/member/dist`.
 
 ## Environment and secrets
 
@@ -21,11 +21,10 @@ The backend API is exposed through Cloudflare Tunnel. Do not configure a public 
 
 ## Local production build
 
-From `frontend/admin`:
+From the repository root:
 
 ```powershell
-npm ci
-npm run build
+npm run build:admin
 ```
 
-Deploy the generated `dist` directory to the `khanhmelody-admin` Pages project using the authorized Cloudflare deployment workflow.
+The Admin Pages project must use `wrangler-admin.toml` when deploying with Wrangler. Its output path is `./frontend/admin/dist`.
