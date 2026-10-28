@@ -365,23 +365,30 @@ async function handleClick(event) {
   } else if (action === 'refresh') {
     try { await loadSongs() } catch (error) { notify(error.message) }
   } else if (action === 'share') {
-    try {
-      const shareData = {
-        title: 'KhanhMelody — Nghe nhạc của bạn',
-        text: 'Khám phá và nghe nhạc trên KhanhMelody.',
-        url: new URL('/', window.location.href).href,
-      }
-      if (navigator.share) {
+    const shareData = {
+      title: 'KhanhMelody — Nghe nhạc của bạn',
+      text: 'Khám phá và nghe nhạc trên KhanhMelody.',
+      url: new URL('/', window.location.href).href,
+    }
+    if (navigator.share) {
+      try {
         await navigator.share(shareData)
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareData.url)
-        notify('Đã sao chép đường dẫn trang web.')
-      } else {
-        const copied = window.prompt('Sao chép đường dẫn trang web:', shareData.url)
-        if (copied !== null) notify('Hãy gửi đường dẫn này cho bạn bè.')
+        return
+      } catch (error) {
+        if (error.name === 'AbortError') return
       }
-    } catch (error) {
-      if (error.name !== 'AbortError') notify(`Không thể chia sẻ trang web: ${error.message}`)
+    }
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API is unavailable')
+      await navigator.clipboard.writeText(shareData.url)
+      notify('Đã sao chép đường dẫn trang web.')
+    } catch {
+      const copied = window.prompt('Sao chép đường dẫn trang web:', shareData.url)
+      if (copied !== null) {
+        notify('Hãy gửi đường dẫn này cho bạn bè.')
+      } else {
+        notify('Không thể tự chia sẻ. Hãy sao chép đường dẫn trên thanh địa chỉ.')
+      }
     }
   } else if (action === 'play') {
     await playSong(Number(button.dataset.id))
