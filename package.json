@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "scripts": {
     "build": "cd frontend/member && npm install && npm run build",
-    "build:admin": "cd frontend/admin && npm ci && npm run build"
+    "build:admin": "cd frontend/public-app && npm ci && npm run build -- --outDir ../admin/dist"
   }
 }

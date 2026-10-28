@@ -1,25 +1,9 @@
-# KhanhMelody Admin setup
+# KhanhMelody Admin access
 
-## Local development
+The public music catalog and Admin sign-in are part of the same website. The public catalog is the default route; open `https://khanhmelodymussic.com/#/admin` to sign in as Admin.
 
-1. Start the Flask backend on `http://localhost:8882`.
-2. From `frontend/admin`, install dependencies and start Vite:
+For local development, start the Flask backend on `http://127.0.0.1:8882`, then run `npm ci` and `npm run dev` from `frontend/public-app`.
 
-   ```powershell
-   npm ci
-   npm run dev
-   ```
+The Cloudflare Pages build uses the root command `npm run build:admin` and output directory `frontend/admin/dist`. API requests use `https://api.khanhmelodymussic.com/api` through Cloudflare Tunnel. Do not open port 8882 to the Internet or configure router port forwarding.
 
-3. Open `http://localhost:5174`. The Vite `/api` proxy forwards requests to the local backend.
-
-## Production
-
-The Admin console is deployed separately from the Member site at `https://khanhmelody-admin.pages.dev`. Set its Cloudflare Pages project root to the repository root, build command to `npm run build:admin`, and output directory to `frontend/admin/dist`. The separate `build:admin` command prevents the Pages project from building the Member site. The production API is `https://api.khanhmelodymussic.com/api`.
-
-The Admin login accepts the existing Admin account only. Public registration creates Member accounts and cannot grant administrator access.
-
-## Secrets and media storage
-
-Keep database, JWT, and Cloudflare R2 credentials in the backend's protected environment only. Do not place credentials in frontend `VITE_*` variables, because Vite embeds those values into public JavaScript. File uploads are sent to the authenticated backend, which handles private R2 access.
-
-Expose the API through Cloudflare Tunnel. Do not point public DNS to a private LAN address or forward the backend port directly from the router.
+Admin login accepts the existing Admin account only. Uploads are sent to the authenticated backend, which holds private R2 credentials. Keep all database, JWT, and R2 secrets in the backend environment, never in frontend `VITE_*` variables.
