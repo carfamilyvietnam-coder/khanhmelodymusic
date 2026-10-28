@@ -64,6 +64,7 @@ function renderPublic() {
         <a class="brand" href="#/">Khanh<span>Melody</span></a>
         <nav class="top-actions">
           <a class="text-link" href="#catalog">Khám phá</a>
+          <a class="shotcut-link" href="https://www.shotcut.org/download/" target="_blank" rel="noopener noreferrer">Cài đặt Shotcut</a>
           <a class="admin-link" href="#/admin">Quản trị</a>
         </nav>
       </header>
@@ -74,6 +75,7 @@ function renderPublic() {
             <h1>Nghe điều bạn thích.<br /><span>Lưu lại giai điệu.</span></h1>
             <p class="hero-description">Khám phá danh sách nhạc và nghe trực tuyến miễn phí. Không cần tạo tài khoản.</p>
             <a class="primary-button" href="#catalog">Khám phá bài hát <span aria-hidden="true">↓</span></a>
+            <a class="shotcut-cta" href="https://www.shotcut.org/download/" target="_blank" rel="noopener noreferrer">Cài đặt Shotcut <span aria-hidden="true">↗</span></a>
           </div>
           <div class="hero-art" aria-hidden="true">
             <div class="vinyl"><div class="vinyl-center">KM</div></div>
