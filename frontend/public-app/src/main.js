@@ -142,6 +142,7 @@ function renderAdmin() {
         <label>Tên đăng nhập<input name="username" value="admin" required autocomplete="username" /></label>
         <label>Mật khẩu<input name="password" type="password" required autocomplete="current-password" /></label>
         <button class="primary-button full-width" type="submit" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button>
+        <p id="login-error" class="form-error" role="alert" hidden></p>
         <a class="back-link" href="#/">← Trở về trang nghe nhạc</a>
       </form><div id="toast" class="toast" role="status" hidden></div></main>`
     return
@@ -281,11 +282,16 @@ async function downloadSong(song, formData) {
 
 async function login(form) {
   state.busy = true
-  renderAdmin()
+  const submitButton = form.querySelector('button[type="submit"]')
+  const errorMessage = form.querySelector('#login-error')
+  const credentials = Object.fromEntries(new FormData(form).entries())
+  submitButton.disabled = true
+  submitButton.textContent = 'Đang đăng nhập…'
+  errorMessage.hidden = true
   try {
     const data = await request('/login', {
       method: 'POST',
-      body: JSON.stringify({ username: form.username, password: form.password }),
+      body: JSON.stringify(credentials),
     })
     if (data.user?.role !== 'admin') throw new Error('Tài khoản này không có quyền Admin.')
     state.adminToken = data.access_token
@@ -294,8 +300,14 @@ async function login(form) {
     await loadAdminTab()
   } catch (error) {
     state.busy = false
-    renderAdmin()
-    notify(error.message)
+    if (state.adminToken) {
+      sessionStorage.removeItem('khanhmelody-admin-token')
+      state.adminToken = ''
+    }
+    errorMessage.textContent = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
+    errorMessage.hidden = false
+    submitButton.disabled = false
+    submitButton.textContent = 'Đăng nhập'
   }
 }
 
@@ -417,7 +429,7 @@ async function handleSubmit(event) {
     await downloadSong(state.paymentSong, values)
   } else if (form.id === 'login-form') {
     if (!form.reportValidity()) return
-    await login(Object.fromEntries(new FormData(form).entries()))
+    await login(form)
   } else if (form.id === 'upload-form') {
     if (!form.reportValidity()) return
     await uploadSong(form)
