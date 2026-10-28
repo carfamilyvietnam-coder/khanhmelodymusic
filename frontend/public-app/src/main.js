@@ -96,6 +96,7 @@ function renderPublic() {
       ${renderPaymentModal()}
       <div id="toast" class="toast" role="status" hidden></div>
     </div>`
+  root.querySelector('.player-bar audio')?.addEventListener('ended', playNextSong)
 }
 
 function renderSongCards() {
@@ -241,6 +242,12 @@ async function playSong(id) {
     renderPublic()
     document.querySelector('.player-bar audio')?.play().catch(() => {})
   } catch (error) { notify(error.message) }
+}
+
+function playNextSong() {
+  const currentIndex = state.songs.findIndex((song) => song.id === state.playingId)
+  const nextSong = state.songs[currentIndex + 1]
+  if (nextSong) playSong(nextSong.id)
 }
 
 function openDownload(id) {
