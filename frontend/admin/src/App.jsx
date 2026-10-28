@@ -168,53 +168,163 @@ function Login({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
+    setIsSubmitting(true)
     try {
       const res = await axios.post(`${API_BASE}/login`, { username, password })
       if (res.data.user?.role !== 'admin') {
-        setError('Administrator access required')
-        toast.error('This account does not have administrator access')
+        setError('Tài khoản này không có quyền quản trị viên.')
         return
       }
       localStorage.setItem('token', res.data.access_token)
       localStorage.setItem('user', JSON.stringify(res.data.user))
       onLogin(res.data.access_token, res.data.user)
-      toast.success('Login successful!')
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed')
-      toast.error(err.response?.data?.error || 'Login failed. Please check your credentials.')
+      if (err.response?.status === 401) {
+        setError('Tên đăng nhập hoặc mật khẩu chưa chính xác.')
+      } else if (err.response?.status === 403) {
+        setError('Tài khoản quản trị viên đang bị vô hiệu hóa.')
+      } else if (!err.response) {
+        setError('Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.')
+      } else {
+        setError(err.response.data?.error || 'Đăng nhập chưa thành công. Vui lòng thử lại.')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96">
-        <h2 className="text-3xl font-bold text-center mb-2 text-pink-500">Admin Login</h2>
-        <p className="text-yellow-400 text-center mb-6 font-semibold">Nghe nhạc bản quyền đỉnh cao</p>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:border-pink-500 outline-none"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:border-pink-500 outline-none"
-          />
-          <button type="submit" className="w-full bg-pink-600 py-3 rounded hover:bg-pink-700 font-bold">
-            Login
-          </button>
-        </form>
+    <main className="admin-login-page">
+      <div className="admin-login-glow admin-login-glow-one" />
+      <div className="admin-login-glow admin-login-glow-two" />
+      <div className="admin-login-card">
+        <section className="admin-login-showcase">
+          <a className="admin-login-brand" href="https://khanhmelodymussic.com" aria-label="KhanhMelody">
+            <span className="admin-login-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none">
+                <path d="M7 22V10l9-5 9 5v12l-9 5-9-5Z" stroke="currentColor" strokeWidth="2" />
+                <path d="M13 12v8l7-4-7-4Z" fill="currentColor" />
+              </svg>
+            </span>
+            <span>Khanh<span className="admin-login-brand-accent">Melody</span></span>
+          </a>
+          <div className="admin-login-showcase-copy">
+            <span className="admin-login-eyebrow">ADMIN CONSOLE</span>
+            <h1>Âm nhạc vận hành<br />bằng cảm hứng.</h1>
+            <p>Một không gian dành riêng cho đội ngũ quản trị, nơi mọi nội dung và hoạt động được quản lý tập trung.</p>
+          </div>
+          <div className="admin-login-art" aria-hidden="true">
+            <div className="admin-login-art-ring admin-login-art-ring-one" />
+            <div className="admin-login-art-ring admin-login-art-ring-two" />
+            <div className="admin-login-art-disc">
+              <span className="admin-login-disc-center">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.8" />
+                  <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="1.8" />
+                </svg>
+              </span>
+            </div>
+            <span className="admin-login-art-note">Quản lý<br />thư viện nhạc</span>
+          </div>
+          <p className="admin-login-showcase-footer">Tuyển chọn âm nhạc. Trải nghiệm khác biệt.</p>
+        </section>
+
+        <section className="admin-login-form-panel">
+          <div className="admin-login-mobile-brand">
+            <span className="admin-login-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none">
+                <path d="M7 22V10l9-5 9 5v12l-9 5-9-5Z" stroke="currentColor" strokeWidth="2" />
+                <path d="M13 12v8l7-4-7-4Z" fill="currentColor" />
+              </svg>
+            </span>
+            <span>Khanh<span className="admin-login-brand-accent">Melody</span></span>
+          </div>
+          <div className="admin-login-heading">
+            <span className="admin-login-eyebrow">CHÀO MỪNG TRỞ LẠI</span>
+            <h2>Đăng nhập quản trị</h2>
+            <p>Nhập thông tin tài khoản quản trị của bạn để tiếp tục.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="admin-login-form">
+            <label htmlFor="admin-username">Tên đăng nhập</label>
+            <div className="admin-login-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
+                <path d="M5 20c.5-3.1 3.2-5 7-5s6.5 1.9 7 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <input
+                id="admin-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                placeholder="Nhập tên đăng nhập"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+
+            <label htmlFor="admin-password">Mật khẩu</label>
+            <div className="admin-login-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4.5" y="10" width="15" height="10" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+                <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <input
+                id="admin-password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Nhập mật khẩu"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                className="admin-login-password-toggle"
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              >
+                {showPassword ? 'ẨN' : 'HIỆN'}
+              </button>
+            </div>
+
+            {error && (
+              <p className="admin-login-error" role="alert">
+                <span aria-hidden="true">!</span>{error}
+              </p>
+            )}
+
+            <button className="admin-login-submit" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <><span className="admin-login-spinner" aria-hidden="true" />Đang xác thực...</>
+              ) : (
+                <>Đăng nhập <span aria-hidden="true">→</span></>
+              )}
+            </button>
+          </form>
+
+          <div className="admin-login-secure-note">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M10 2.5 4 5v4.3c0 3.8 2.5 6.7 6 8.2 3.5-1.5 6-4.4 6-8.2V5l-6-2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="m7.5 9.8 1.7 1.7 3.5-3.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Kết nối bảo mật dành riêng cho quản trị viên
+          </div>
+          <a className="admin-login-home-link" href="https://khanhmelodymussic.com">← Trở về trang nghe nhạc</a>
+        </section>
       </div>
-    </div>
+      <p className="admin-login-copyright">© {new Date().getFullYear()} KhanhMelody. All rights reserved.</p>
+    </main>
   )
 }
 
