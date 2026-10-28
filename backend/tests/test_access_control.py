@@ -171,6 +171,97 @@ class AccessControlTests(unittest.TestCase):
         self.assertEqual(Transaction.query.filter_by(
             user_id=self.member.id, song_id=song.id, status='completed').count(), 1)
 
+    def test_public_catalog_and_stream_do_not_require_login(self):
+        song = Song(title='Public Track', artist='Artist', price=Decimal('50000.00'), audio_url='audio/track.mp3')
+        db.session.add(song)
+        db.session.commit()
+
+        with patch('app.routes.songs.song_stream_url', return_value='https://storage.example/signed'):
+            catalog = self.client.get('/api/public/songs')
+            stream = self.client.get(f'/api/public/songs/{song.id}/stream')
+
+        self.assertEqual(catalog.status_code, 200)
+        self.assertEqual(catalog.json[0]['title'], 'Public Track')
+        self.assertEqual(stream.status_code, 200)
+        self.assertEqual(stream.json['stream_url'], 'https://storage.example/signed')
+        self.assertEqual(song.play_count, 1)
+
+    def test_guest_download_accepts_transfer_claim_but_does_not_mark_payment_verified(self):
+        song = Song(title='Public Track', artist='Artist', price=Decimal('50000.00'), audio_url='audio/track.mp3')
+        db.session.add(song)
+        db.session.commit()
+
+        invalid_amount = self.client.post(
+            f'/api/public/songs/{song.id}/download',
+            json={
+                'customer_name': 'Customer',
+                'phone': '0912345678',
+                'transfer_reference': 'BANK123',
+                'amount': 100,
+            },
+        )
+        self.assertEqual(invalid_amount.status_code, 400)
+
+        with patch('app.routes.songs.song_stream_url', return_value='https://storage.example/download'):
+            response = self.client.post(
+                f'/api/public/songs/{song.id}/download',
+                json={
+                    'customer_name': 'Customer',
+                    'phone': '0912345678',
+                    'transfer_reference': 'BANK123',
+                    'amount': 50000,
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['stream_url'], 'https://storage.example/download')
+        self.assertFalse(response.json['payment_verified'])
+        self.assertEqual(song.download_count, 1)
+        self.assertEqual(Transaction.query.filter_by(song_id=song.id).count(), 0)
+
+    def test_admin_can_review_and_block_guest_by_phone(self):
+        song = Song(title='Public Track', artist='Artist', price=Decimal('50000.00'), audio_url='audio/track.mp3')
+        db.session.add(song)
+        db.session.commit()
+        phone = '0912345678'
+
+        with patch('app.routes.songs.song_stream_url', return_value='https://storage.example/download'):
+            submitted = self.client.post(
+                f'/api/public/songs/{song.id}/download',
+                json={
+                    'customer_name': 'Customer',
+                    'phone': phone,
+                    'transfer_reference': 'BANK123',
+                    'amount': 50000,
+                },
+            )
+        self.assertEqual(submitted.status_code, 200)
+
+        denied = self.client.get('/api/admin/guest-downloads', headers=self.headers(self.member_token))
+        self.assertEqual(denied.status_code, 403)
+        review = self.client.get('/api/admin/guest-downloads', headers=self.headers(self.admin_token))
+        self.assertEqual(review.status_code, 200)
+        self.assertEqual(review.json['claims'][0]['customer_phone'], '84912345678')
+        self.assertEqual(review.json['customers'][0]['claims_count'], 1)
+
+        locked = self.client.post(
+            '/api/admin/guest-customers/84912345678/block',
+            json={'reason': 'Admin review'},
+            headers=self.headers(self.admin_token),
+        )
+        self.assertEqual(locked.status_code, 200)
+        self.assertTrue(locked.json['customer']['is_blocked'])
+        blocked_download = self.client.post(
+            f'/api/public/songs/{song.id}/download',
+            json={
+                'customer_name': 'Customer',
+                'phone': phone,
+                'transfer_reference': 'BANK124',
+                'amount': 50000,
+            },
+        )
+        self.assertEqual(blocked_download.status_code, 403)
+
     def test_legacy_r2_url_is_reduced_to_a_valid_object_key(self):
         self.app.config['R2_PUBLIC_URL'] = 'https://khanhmelody.r2.dev'
         self.assertEqual(

@@ -1,16 +1,33 @@
+import re
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import jwt_required
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
+from app.models.guest_download import GuestCustomer, GuestDownloadClaim
 from app.models.song import Song
 from app.models.transaction import Transaction
 from app.models.wallet import Wallet
 from app.security import admin_required, current_user, login_required
 
 songs_bp = Blueprint('songs', __name__)
+GUEST_DOWNLOAD_PRICE = Decimal('50000.00')
+
+
+def normalize_guest_phone(value):
+    if not isinstance(value, str):
+        return None
+    compact = re.sub(r'[\s().-]', '', value)
+    if not re.fullmatch(r'\+?\d{9,15}', compact):
+        return None
+    digits = compact.lstrip('+')
+    if digits.startswith('0'):
+        digits = f'84{digits[1:]}'
+    return digits
 
 
 def has_paid(user_id, song_id):
@@ -29,6 +46,126 @@ def can_access_song(user, song):
 def song_stream_url(song, as_attachment=False):
     from app.routes.upload import create_read_url
     return create_read_url(song.audio_url, as_attachment=as_attachment)
+
+
+@songs_bp.route('/public/songs', methods=['GET'])
+def get_public_songs():
+    return jsonify([song.to_dict() for song in Song.query.order_by(Song.created_at.desc()).all()]), 200
+
+
+@songs_bp.route('/public/songs/<int:song_id>/stream', methods=['GET'])
+def stream_public_song(song_id):
+    song = db.session.get(Song, song_id)
+    if not song:
+        return jsonify({'error': 'Song not found'}), 404
+    try:
+        url = song_stream_url(song)
+    except (RuntimeError, ValueError):
+        current_app.logger.exception('Could not generate private song URL')
+        return jsonify({'error': 'Song storage is unavailable'}), 503
+    song.play_count = (song.play_count or 0) + 1
+    db.session.commit()
+    return jsonify({'stream_url': url}), 200
+
+
+@songs_bp.route('/public/songs/<int:song_id>/download', methods=['POST'])
+def submit_guest_download(song_id):
+    song = db.session.get(Song, song_id)
+    if not song:
+        return jsonify({'error': 'Song not found'}), 404
+
+    data = request.get_json(silent=True) or {}
+    if Decimal(str(song.price or 0)) > 0:
+        customer_name = data.get('customer_name')
+        transfer_reference = data.get('transfer_reference')
+        phone = normalize_guest_phone(data.get('phone'))
+        try:
+            amount = Decimal(str(data.get('amount')))
+            if amount != GUEST_DOWNLOAD_PRICE:
+                raise InvalidOperation
+        except (InvalidOperation, TypeError, ValueError):
+            return jsonify({'error': 'The transfer amount must be 50000 VND'}), 400
+        if not isinstance(customer_name, str) or not customer_name.strip() or len(customer_name.strip()) > 100:
+            return jsonify({'error': 'Customer name is required'}), 400
+        if not isinstance(transfer_reference, str) or not transfer_reference.strip() or len(transfer_reference.strip()) > 120:
+            return jsonify({'error': 'Transfer reference is required'}), 400
+        if phone is None:
+            return jsonify({'error': 'A valid phone number is required'}), 400
+
+        customer = db.session.get(GuestCustomer, phone)
+        if customer and customer.is_blocked:
+            return jsonify({'error': 'This phone number is blocked from guest downloads'}), 403
+        if customer is None:
+            customer = GuestCustomer(phone=phone)
+            db.session.add(customer)
+
+    try:
+        url = song_stream_url(song, as_attachment=True)
+    except (RuntimeError, ValueError):
+        current_app.logger.exception('Could not generate private song URL')
+        return jsonify({'error': 'Song storage is unavailable'}), 503
+    song.download_count = (song.download_count or 0) + 1
+    if Decimal(str(song.price or 0)) > 0:
+        db.session.add(GuestDownloadClaim(
+            customer=customer,
+            customer_name=customer_name.strip(),
+            transfer_reference=transfer_reference.strip(),
+            song_id=song.id,
+            song_title=song.title,
+            amount=GUEST_DOWNLOAD_PRICE,
+        ))
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception('Could not save guest download request')
+        return jsonify({'error': 'Could not save the download request'}), 503
+    return jsonify({
+        'stream_url': url,
+        'payment_verified': False,
+        'message': 'Transfer information was submitted but not verified.',
+    }), 200
+
+
+@songs_bp.route('/admin/guest-downloads', methods=['GET'])
+@jwt_required()
+@admin_required
+def get_guest_downloads():
+    claims = GuestDownloadClaim.query.order_by(GuestDownloadClaim.created_at.desc()).limit(500).all()
+    counts = dict(
+        db.session.query(
+            GuestDownloadClaim.customer_phone,
+            func.count(GuestDownloadClaim.id),
+        )
+        .group_by(GuestDownloadClaim.customer_phone)
+        .all()
+    )
+    customers = GuestCustomer.query.order_by(GuestCustomer.created_at.desc()).limit(500).all()
+    return jsonify({
+        'claims': [claim.to_dict() for claim in claims],
+        'customers': [
+            {**customer.to_dict(), 'claims_count': counts.get(customer.phone, 0)}
+            for customer in customers
+        ],
+    }), 200
+
+
+@songs_bp.route('/admin/guest-customers/<string:phone>/block', methods=['POST'])
+@jwt_required()
+@admin_required
+def block_guest_customer(phone):
+    customer = db.session.get(GuestCustomer, phone)
+    if customer is None:
+        return jsonify({'error': 'Guest customer not found'}), 404
+    data = request.get_json(silent=True) or {}
+    reason = data.get('reason', '')
+    if not isinstance(reason, str) or len(reason.strip()) > 255:
+        return jsonify({'error': 'Block reason must be 255 characters or fewer'}), 400
+    customer.is_blocked = True
+    customer.blocked_at = datetime.utcnow()
+    customer.block_reason = reason.strip() or None
+    db.session.commit()
+    return jsonify({'customer': customer.to_dict()}), 200
 
 
 @songs_bp.route('/songs', methods=['GET'])

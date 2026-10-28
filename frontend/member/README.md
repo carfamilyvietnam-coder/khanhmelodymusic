@@ -1,16 +1,10 @@
-# React + Vite
+# KhanhMelody public music page
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The public music page does not require customer login. Configure the API and bank QR image in the frontend build environment:
 
-Currently, two official plugins are available:
+```env
+VITE_API_BASE_URL=https://api.khanhmelodymussic.com/api
+VITE_PAYMENT_QR_IMAGE_URL=/payment-qr.png
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Place the corresponding 50,000 VND QR image at `public/payment-qr.png` before building. The guest download form sends the customer's stated name, phone number, and transfer reference, then opens the download immediately. Admin can review the submitted claims and block further downloads for a phone number. The application does not verify bank transfers or distinguish false claims; those actions require a bank/payment webhook or manual review.

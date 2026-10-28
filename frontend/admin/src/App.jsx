@@ -155,6 +155,7 @@ function App() {
                 <Route path="/users" element={<UserManagement />} />
                 <Route path="/revenue" element={<RevenueManagement />} />
                 <Route path="/wallets" element={<WalletManagement />} />
+                <Route path="/guest-downloads" element={<GuestDownloadManagement />} />
               </Routes>
             </main>
           </div>
@@ -260,6 +261,7 @@ function Sidebar({ isOpen, onClose }) {
           <li><Link to="/users" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Users</Link></li>
           <li><Link to="/revenue" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Revenue</Link></li>
           <li><Link to="/wallets" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Wallets</Link></li>
+          <li><Link to="/guest-downloads" onClick={onClose} className="block p-3 rounded hover:bg-gray-700 text-gray-300 hover:text-white">Khách tải nhạc</Link></li>
         </ul>
       </div>
     </>
@@ -1086,6 +1088,150 @@ function WalletManagement() {
           ))}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+function GuestDownloadManagement() {
+  const [customers, setCustomers] = useState([])
+  const [claims, setClaims] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchGuestDownloads = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const { data } = await axios.get(`${API_BASE}/admin/guest-downloads`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setCustomers(data.customers)
+      setClaims(data.claims)
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Không thể tải xác nhận tải nhạc')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchGuestDownloads()
+  }, [])
+
+  const blockCustomer = async (customer) => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post(
+        `${API_BASE}/admin/guest-customers/${encodeURIComponent(customer.phone)}/block`,
+        { reason: 'Admin đã khóa khách tải nhạc' },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      toast.success('Đã khóa vĩnh viễn số điện thoại này')
+      await fetchGuestDownloads()
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Không thể cập nhật trạng thái khách')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-pink-500"></div>
+      </div>
+    )
+  }
+
+  const customerByPhone = new Map(customers.map((customer) => [customer.phone, customer]))
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-3xl font-bold">Khách tải nhạc</h2>
+          <p className="mt-1 text-sm text-gray-400">
+            Thông tin chuyển khoản do khách tự khai báo, chưa được ngân hàng xác minh.
+          </p>
+        </div>
+        <button onClick={fetchGuestDownloads} className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
+          Làm mới
+        </button>
+      </div>
+
+      <section className="mb-8">
+        <h3 className="mb-3 text-xl font-semibold">Quản lý khách ({customers.length})</h3>
+        <div className="overflow-x-auto rounded-lg bg-gray-800">
+          <table className="w-full">
+            <thead className="bg-gray-700">
+              <tr>
+                <th className="p-3 text-left">Số điện thoại</th>
+                <th className="p-3 text-left">Số lần gửi</th>
+                <th className="p-3 text-left">Trạng thái</th>
+                <th className="p-3 text-left">Lý do khóa</th>
+                <th className="p-3 text-left">Thao tác Admin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customers.map((customer) => (
+                <tr key={customer.phone} className="border-b border-gray-700">
+                  <td className="p-3">{customer.phone}</td>
+                  <td className="p-3">{customer.claims_count}</td>
+                  <td className="p-3">{customer.is_blocked ? 'Đã khóa' : 'Đang hoạt động'}</td>
+                  <td className="p-3">{customer.block_reason || '—'}</td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => blockCustomer(customer)}
+                      disabled={customer.is_blocked}
+                      className="rounded bg-red-700 px-3 py-2 text-sm font-semibold hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-600"
+                    >
+                      {customer.is_blocked ? 'Đã khóa vĩnh viễn' : 'Admin khóa khách'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {customers.length === 0 && (
+                <tr><td colSpan="5" className="p-6 text-center text-gray-400">Chưa có xác nhận tải nhạc nào.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xl font-semibold">Xác nhận khách gửi ({claims.length} gần nhất)</h3>
+        <div className="overflow-x-auto rounded-lg bg-gray-800">
+          <table className="w-full">
+            <thead className="bg-gray-700">
+              <tr>
+                <th className="p-3 text-left">Thời gian</th>
+                <th className="p-3 text-left">Khách</th>
+                <th className="p-3 text-left">Số điện thoại</th>
+                <th className="p-3 text-left">Bài hát</th>
+                <th className="p-3 text-left">Mã giao dịch</th>
+                <th className="p-3 text-left">Số tiền khai báo</th>
+                <th className="p-3 text-left">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {claims.map((claim) => (
+                <tr key={claim.id} className="border-b border-gray-700">
+                  <td className="p-3">{new Date(claim.created_at).toLocaleString('vi-VN')}</td>
+                  <td className="p-3">{claim.customer_name}</td>
+                  <td className="p-3">{claim.customer_phone}</td>
+                  <td className="p-3">{claim.song_title}</td>
+                  <td className="p-3">{claim.transfer_reference}</td>
+                  <td className="p-3">{Number(claim.amount).toLocaleString('vi-VN')}đ</td>
+                  <td className="p-3">
+                    {claim.payment_verified ? 'Đã xác minh' : 'Chưa xác minh'}
+                    {customerByPhone.get(claim.customer_phone)?.is_blocked ? ' · Đã khóa' : ''}
+                  </td>
+                </tr>
+              ))}
+              {claims.length === 0 && (
+                <tr><td colSpan="7" className="p-6 text-center text-gray-400">Chưa có xác nhận tải nhạc nào.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   )
 }

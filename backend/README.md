@@ -26,6 +26,10 @@ Backend API cung cấp các endpoint cho:
 - Theo dõi doanh thu (Revenue Tracking)
 - Upload file lên Cloudflare R2
 
+Khách có thể xem danh sách và nghe bài hát qua `/api/public/songs` và các endpoint public tương ứng mà không cần JWT. Endpoint tải bài hát trả phí nhận tên người chuyển, mã giao dịch và số tiền do khách khai báo rồi cấp URL tải ngay; **endpoint này không xác minh tiền đã vào tài khoản và không ghi nhận doanh thu**. Không dùng xác nhận này làm bằng chứng thanh toán hoặc để tự động khóa khách gian lận.
+
+Yêu cầu tải của khách được lưu cùng số điện thoại để Admin xem tại `/api/admin/guest-downloads`; Admin có thể khóa vĩnh viễn số điện thoại qua `/api/admin/guest-customers/<phone>/block`. Sau khi thêm các bảng `guest_customers` và `guest_download_claims`, chạy `python init_db.py` trong môi trường backend để tạo schema mới trước khi dùng các endpoint này. Khóa số điện thoại chặn các yêu cầu tải tiếp theo có khai báo cùng số; khách có thể dùng số khác và link tải đã cấp trước đó vẫn có hiệu lực đến khi hết hạn.
+
 ## ✨ Tính Năng
 
 - **JWT Authentication**: Xác thực bảo mật với JWT tokens
