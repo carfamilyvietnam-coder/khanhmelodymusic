@@ -6,6 +6,7 @@
 .upload-grid select{width:100%;border:1px solid #ffffff20;background:#101118;color:#fff;border-radius:9px;padding:11px 12px;outline:none}
 .wallet-actions{white-space:nowrap}.wallet-actions button{margin:2px 3px;border:1px solid #ffffff24;border-radius:6px;color:#e5e2ef;background:#ffffff0b;padding:6px 8px;font-size:10px;cursor:pointer}
 .form-error{color:#ff9e9e;background:#ff42420c;border:1px solid #ff717145;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5}
+.section-actions{display:flex;gap:8px;flex:none}
 @media(max-width:760px){.site-shell,.admin-shell{padding:0 17px}.topbar{height:68px}.top-actions{gap:13px}.hero{grid-template-columns:1fr;min-height:auto;padding-top:20px}.hero-copy{padding:40px 0 0}.hero-art{height:260px}.vinyl{width:210px;height:210px}.vinyl-center{width:70px;height:70px}.hero h1{font-size:42px}.song-grid{grid-template-columns:1fr}.catalog-section{padding:37px 0 55px}.footer{gap:10px;font-size:10px}.player-bar{bottom:8px;gap:10px;padding:10px}.player-bar div{min-width:90px}.player-bar strong{font-size:11px}.player-bar span{font-size:10px}.player-bar audio{width:55%}.admin-main{padding-top:27px}.admin-title h1{font-size:27px}.admin-panel{padding:16px}.upload-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.stat-card strong{font-size:21px}}
 @media(max-width:430px){.text-link{display:none}.brand{font-size:20px}.hero h1{font-size:37px}.song-card{gap:10px;padding:9px}.cover{width:56px;height:56px}.download-button{font-size:10px;padding:7px}.payment-card{padding:22px}.qr-image{width:160px;height:160px}.stats-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
@@ -22,7 +23,8 @@
   .hero-art:before{width:min(270px,75vw);height:min(270px,75vw)}
   .vinyl{width:min(210px,58vw);height:min(210px,58vw)}
   .catalog-section{padding:32px 0 45px}
-  .section-heading{align-items:flex-start}
+  .section-heading{align-items:flex-start;flex-wrap:wrap}
+  .section-actions{margin-left:auto}
   .section-heading h2{font-size:20px}
   .song-grid{grid-template-columns:minmax(0,1fr);gap:10px}
   .song-card{min-width:0}

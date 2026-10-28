@@ -83,7 +83,10 @@ function renderPublic() {
         <section id="catalog" class="catalog-section">
           <div class="section-heading">
             <div><p class="eyebrow">DANH SÁCH</p><h2>Bài hát mới nhất</h2></div>
-            <button class="quiet-button" data-action="refresh">Làm mới</button>
+            <div class="section-actions">
+              <button class="quiet-button" data-action="share">Chia sẻ</button>
+              <button class="quiet-button" data-action="refresh">Làm mới</button>
+            </div>
           </div>
           <div id="song-list" class="song-grid">${renderSongCards()}</div>
         </section>
@@ -354,6 +357,25 @@ async function handleClick(event) {
     renderPublic()
   } else if (action === 'refresh') {
     try { await loadSongs() } catch (error) { notify(error.message) }
+  } else if (action === 'share') {
+    try {
+      const shareData = {
+        title: 'KhanhMelody — Nghe nhạc của bạn',
+        text: 'Khám phá và nghe nhạc trên KhanhMelody.',
+        url: new URL('/', window.location.href).href,
+      }
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareData.url)
+        notify('Đã sao chép đường dẫn trang web.')
+      } else {
+        const copied = window.prompt('Sao chép đường dẫn trang web:', shareData.url)
+        if (copied !== null) notify('Hãy gửi đường dẫn này cho bạn bè.')
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') notify(`Không thể chia sẻ trang web: ${error.message}`)
+    }
   } else if (action === 'play') {
     await playSong(Number(button.dataset.id))
   } else if (action === 'download') {
