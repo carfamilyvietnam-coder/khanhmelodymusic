@@ -80,3 +80,25 @@ def get_current_user():
     if not user:
         return jsonify({'error': 'User not found'}), 404
     return jsonify(user.to_dict()), 200
+
+
+@auth_bp.route('/change-password', methods=['POST'])
+@jwt_required()
+def change_password():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'Active account required'}), 401
+
+    data = request.get_json(silent=True) or {}
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    if not isinstance(current_password, str) or not isinstance(new_password, str):
+        return jsonify({'error': 'Current and new passwords are required'}), 400
+    if not user.check_password(current_password):
+        return jsonify({'error': 'Mật khẩu hiện tại không đúng.'}), 400
+    if not 8 <= len(new_password) <= 72:
+        return jsonify({'error': 'Mật khẩu mới phải có từ 8 đến 72 ký tự.'}), 400
+
+    user.set_password(new_password)
+    db.session.commit()
+    return jsonify({'message': 'Đã đổi mật khẩu.'}), 200

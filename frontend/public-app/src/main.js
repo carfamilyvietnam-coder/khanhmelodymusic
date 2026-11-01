@@ -13,8 +13,11 @@ const state = {
   downloads: [],
   playingId: null,
   playingUrl: '',
+  installPrompt: null,
+  showInstallHelp: false,
   busy: false,
   adminToken: sessionStorage.getItem('khanhmelody-admin-token') || '',
+  showPasswordForm: false,
   adminTab: 'songs',
   adminSongs: [],
   claims: [],
@@ -40,8 +43,17 @@ async function request(path, options = {}, token = '') {
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers })
   const text = await response.text()
   let data = null
-  try { data = text ? JSON.parse(text) : null } catch { data = { error: 'Phản hồi máy chủ không hợp lệ' } }
-  if (!response.ok) throw new Error(data?.error || `Máy chủ trả về HTTP ${response.status}`)
+  try { data = text ? JSON.parse(text) : null } catch { data = null }
+  if (!response.ok) {
+    const unavailable = [502, 503, 504].includes(response.status)
+    const message = data?.error || (unavailable
+      ? `Máy chủ API tạm thời không khả dụng (HTTP ${response.status}). Vui lòng thử lại sau.`
+      : text.trim() || `Máy chủ trả về HTTP ${response.status}`)
+    const error = new Error(message)
+    error.status = response.status
+    throw error
+  }
+  if (text && data === null) throw new Error('Phản hồi máy chủ không hợp lệ')
   return data
 }
 
@@ -68,6 +80,7 @@ function renderPublic() {
         <nav class="top-actions">
           <a class="text-link" href="#catalog">Khám phá</a>
           <a class="shotcut-link" href="https://www.shotcut.org/download/" target="_blank" rel="noopener noreferrer">Cài đặt Shotcut</a>
+          <button class="install-button" data-action="install-app">Cài đặt</button>
           <a class="admin-link" href="#/admin">Quản trị</a>
         </nav>
       </header>
@@ -99,6 +112,7 @@ function renderPublic() {
       <footer class="footer"><span>KhanhMelody</span><span>Nghe nhạc công khai · Không cần đăng nhập</span></footer>
       ${state.playingUrl ? `<div class="player-bar"><div><strong>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.title || 'Đang phát')}</strong><span>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.artist || '')}</span></div><audio controls autoplay></audio></div>` : ''}
       ${renderPaymentModal()}
+      ${renderInstallHelp()}
       <div id="toast" class="toast" role="status" hidden></div>
     </div>`
   attachAudioPlayer()
@@ -143,6 +157,23 @@ async function attachAudioPlayer() {
   } else {
     notify('Trình duyệt này không hỗ trợ phát HLS.')
   }
+}
+
+function renderInstallHelp() {
+  if (!state.showInstallHelp) return ''
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const instructions = isAppleMobile
+    ? 'Trong Safari, chạm nút Chia sẻ rồi chọn “Thêm vào Màn hình chính”.'
+    : 'Mở menu trình duyệt (dấu ⋮ hoặc ⋯), chọn “Cài đặt KhanhMelody” hoặc “Thêm vào màn hình chính”.'
+  return `<div class="modal-backdrop" data-action="close-install-help">
+    <section class="install-card" role="dialog" aria-modal="true" aria-labelledby="install-title">
+      <button type="button" class="modal-close" data-action="close-install-help" aria-label="Đóng">×</button>
+      <p class="eyebrow">TRUY CẬP NHANH</p>
+      <h2 id="install-title">Thêm KhanhMelody vào màn hình chính</h2>
+      <p class="muted">${instructions}</p>
+      <button type="button" class="primary-button full-width" data-action="close-install-help">Đã hiểu</button>
+    </section>
+  </div>`
 }
 
 function renderSongCards() {
@@ -200,12 +231,31 @@ function renderAdmin() {
   const tabNames = { songs: 'Bài hát', claims: 'Xác nhận tải', revenue: 'Doanh thu', wallets: 'Ví khách hàng' }
   root.innerHTML = `<div class="admin-shell">
     <header class="topbar"><a class="brand" href="#/">Khanh<span>Melody</span> <small>ADMIN</small></a>
-      <div class="top-actions"><a class="text-link" href="#/">Trang công khai</a><button class="admin-link" data-action="logout">Đăng xuất</button></div>
+      <div class="top-actions"><a class="text-link" href="#/">Trang công khai</a><button class="quiet-button" data-action="change-password">Đổi mật khẩu</button><button class="admin-link" data-action="logout">Đăng xuất</button></div>
     </header>
     <main class="admin-main"><div class="admin-title"><div><p class="eyebrow">TRUNG TÂM QUẢN TRỊ</p><h1>Quản lý KhanhMelody</h1></div><button class="quiet-button" data-action="admin-refresh">Làm mới</button></div>
       <div class="admin-tabs">${Object.entries(tabNames).map(([id, name]) => `<button class="${state.adminTab === id ? 'selected' : ''}" data-action="admin-tab" data-tab="${id}">${name}</button>`).join('')}</div>
       <section id="admin-content">${renderAdminContent()}</section>
-    </main><div id="toast" class="toast" role="status" hidden></div></div>`
+    </main>${renderPasswordDialog()}<div id="toast" class="toast" role="status" hidden></div></div>`
+}
+
+function renderPasswordDialog() {
+  if (!state.showPasswordForm) return ''
+  return `<div class="modal-backdrop" data-action="close-password-dialog">
+    <section class="password-card" role="dialog" aria-modal="true" aria-labelledby="password-title">
+      <button type="button" class="modal-close" data-action="close-password-dialog" aria-label="Đóng">×</button>
+      <p class="eyebrow">TÀI KHOẢN ADMIN</p>
+      <h2 id="password-title">Đổi mật khẩu</h2>
+      <p class="muted">Chọn mật khẩu bạn dễ nhớ, dài từ 8 đến 72 ký tự.</p>
+      <form id="change-password-form">
+        <label>Mật khẩu hiện tại<input name="current_password" type="password" required autocomplete="current-password" /></label>
+        <label>Mật khẩu mới<input name="new_password" type="password" minlength="8" maxlength="72" required autocomplete="new-password" /></label>
+        <label>Nhập lại mật khẩu mới<input name="confirm_password" type="password" minlength="8" maxlength="72" required autocomplete="new-password" /></label>
+        <p id="password-error" class="form-error" role="alert" hidden></p>
+        <button class="primary-button full-width" type="submit">Lưu mật khẩu mới</button>
+      </form>
+    </section>
+  </div>`
 }
 
 function renderAdminContent() {
@@ -276,19 +326,35 @@ async function loadSongs() {
 
 async function loadAdminTab() {
   if (!state.adminToken) return
-  if (state.adminTab === 'songs') {
-    state.adminSongs = await request('/admin/songs', {}, state.adminToken)
-  } else if (state.adminTab === 'claims') {
-    const data = await request('/admin/guest-downloads', {}, state.adminToken)
-    state.claims = data.claims
-    state.customers = data.customers
-  } else if (state.adminTab === 'revenue') {
-    state.revenue = await request('/admin/revenue', {}, state.adminToken)
-  } else if (state.adminTab === 'wallets') {
-    state.wallets = await request('/admin/wallets', {}, state.adminToken)
+  try {
+    if (state.adminTab === 'songs') {
+      state.adminSongs = await request('/admin/songs', {}, state.adminToken)
+    } else if (state.adminTab === 'claims') {
+      const data = await request('/admin/guest-downloads', {}, state.adminToken)
+      state.claims = data.claims
+      state.customers = data.customers
+    } else if (state.adminTab === 'revenue') {
+      state.revenue = await request('/admin/revenue', {}, state.adminToken)
+    } else if (state.adminTab === 'wallets') {
+      state.wallets = await request('/admin/wallets', {}, state.adminToken)
+    }
+    renderAdmin()
+  } finally {
+    state.busy = false
   }
+}
+
+function handleAdminLoadError(error) {
   state.busy = false
+  if (error.status === 401) {
+    sessionStorage.removeItem('khanhmelody-admin-token')
+    state.adminToken = ''
+    renderAdmin()
+    notify('Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.')
+    return
+  }
   renderAdmin()
+  notify(error.message)
 }
 
 async function playSong(id) {
@@ -359,26 +425,64 @@ async function login(form) {
   submitButton.disabled = true
   submitButton.textContent = 'Đang đăng nhập…'
   errorMessage.hidden = true
+  let data
   try {
-    const data = await request('/login', {
+    data = await request('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     })
     if (data.user?.role !== 'admin') throw new Error('Tài khoản này không có quyền Admin.')
-    state.adminToken = data.access_token
-    sessionStorage.setItem('khanhmelody-admin-token', data.access_token)
-    state.adminTab = 'songs'
-    await loadAdminTab()
   } catch (error) {
     state.busy = false
-    if (state.adminToken) {
-      sessionStorage.removeItem('khanhmelody-admin-token')
-      state.adminToken = ''
-    }
     errorMessage.textContent = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.'
     errorMessage.hidden = false
     submitButton.disabled = false
     submitButton.textContent = 'Đăng nhập'
+    return
+  }
+
+  state.adminToken = data.access_token
+  sessionStorage.setItem('khanhmelody-admin-token', data.access_token)
+  state.adminTab = 'songs'
+  renderAdmin()
+  try {
+    await loadAdminTab()
+  } catch (error) {
+    handleAdminLoadError(error)
+  }
+}
+
+async function changePassword(form) {
+  const errorMessage = form.querySelector('#password-error')
+  const submitButton = form.querySelector('button[type="submit"]')
+  const values = Object.fromEntries(new FormData(form).entries())
+  if (values.new_password !== values.confirm_password) {
+    errorMessage.textContent = 'Hai lần nhập mật khẩu mới chưa giống nhau.'
+    errorMessage.hidden = false
+    return
+  }
+
+  submitButton.disabled = true
+  errorMessage.hidden = true
+  try {
+    await request('/change-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: values.current_password,
+        new_password: values.new_password,
+      }),
+    }, state.adminToken)
+    state.showPasswordForm = false
+    renderAdmin()
+    notify('Đã đổi mật khẩu.')
+  } catch (error) {
+    if (error.status === 401) {
+      handleAdminLoadError(error)
+      return
+    }
+    errorMessage.textContent = error.message
+    errorMessage.hidden = false
+    submitButton.disabled = false
   }
 }
 
@@ -423,6 +527,30 @@ async function handleClick(event) {
   } else if (action === 'close-payment') {
     state.paymentSong = null
     renderPublic()
+  } else if (action === 'close-install-help' && (button.dataset.action === 'close-install-help')) {
+    state.showInstallHelp = false
+    renderPublic()
+  } else if (action === 'install-app') {
+    if (state.installPrompt) {
+      const installPrompt = state.installPrompt
+      state.installPrompt = null
+      try {
+        await installPrompt.prompt()
+        await installPrompt.userChoice
+      } catch {
+        state.showInstallHelp = true
+        renderPublic()
+      }
+    } else {
+      state.showInstallHelp = true
+      renderPublic()
+    }
+  } else if (action === 'change-password') {
+    state.showPasswordForm = true
+    renderAdmin()
+  } else if (action === 'close-password-dialog' && event.target === button) {
+    state.showPasswordForm = false
+    renderAdmin()
   } else if (action === 'refresh') {
     try { await loadSongs() } catch (error) { notify(error.message) }
   } else if (action === 'share') {
@@ -527,6 +655,9 @@ async function handleSubmit(event) {
   } else if (form.id === 'login-form') {
     if (!form.reportValidity()) return
     await login(form)
+  } else if (form.id === 'change-password-form') {
+    if (!form.reportValidity()) return
+    await changePassword(form)
   } else if (form.id === 'upload-form') {
     if (!form.reportValidity()) return
     await uploadSong(form)
@@ -537,12 +668,7 @@ function route() {
   if (location.hash.startsWith('#/admin')) {
     renderAdmin()
     if (state.adminToken) {
-      loadAdminTab().catch((error) => {
-        sessionStorage.removeItem('khanhmelody-admin-token')
-        state.adminToken = ''
-        renderAdmin()
-        notify(error.message)
-      })
+      loadAdminTab().catch(handleAdminLoadError)
     }
   } else {
     renderPublic()
@@ -552,6 +678,14 @@ function route() {
 root.addEventListener('click', (event) => { handleClick(event) })
 root.addEventListener('submit', (event) => { handleSubmit(event) })
 window.addEventListener('hashchange', route)
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault()
+  state.installPrompt = event
+})
+window.addEventListener('appinstalled', () => {
+  state.installPrompt = null
+  notify('Đã cài đặt KhanhMelody.')
+})
 route()
 loadSongs().catch((error) => {
   const list = document.querySelector('#song-list')

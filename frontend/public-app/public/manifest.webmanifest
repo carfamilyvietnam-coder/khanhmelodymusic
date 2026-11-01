@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "KhanhMelody — Nghe nhạc của bạn",
+  "short_name": "KhanhMelody",
+  "description": "Khám phá và nghe nhạc trên KhanhMelody.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101118",
+  "theme_color": "#11131b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

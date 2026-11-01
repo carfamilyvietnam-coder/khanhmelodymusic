@@ -6,11 +6,21 @@
 .upload-grid select{width:100%;border:1px solid #ffffff20;background:#101118;color:#fff;border-radius:9px;padding:11px 12px;outline:none}
 .wallet-actions{white-space:nowrap}.wallet-actions button{margin:2px 3px;border:1px solid #ffffff24;border-radius:6px;color:#e5e2ef;background:#ffffff0b;padding:6px 8px;font-size:10px;cursor:pointer}
 .form-error{color:#ff9e9e;background:#ff42420c;border:1px solid #ff717145;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5}
+.password-card{position:relative;width:min(100%,430px);border:1px solid #ffffff1b;border-radius:18px;background:#1a1b25;padding:30px;box-shadow:0 20px 80px #000a}
+.password-card h2{font:700 23px Manrope,sans-serif;margin:0 0 8px}
+.password-card .muted{line-height:1.6;margin:0 0 18px}
+.password-card label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:#d4d3dd;margin:12px 0}
+.password-card input{width:100%;border:1px solid #ffffff20;background:#101118;color:#fff;border-radius:9px;padding:11px 12px;outline:none}
+.password-card input:focus{border-color:#b99af4}
 .section-actions{display:flex;gap:8px;flex:none}
 .shotcut-link,.shotcut-cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid #f5a1bc70;border-radius:10px;background:#f5a1bc12;color:#f5c2d4;font-weight:600;transition:background .2s,border-color .2s}
 .shotcut-link{padding:10px 13px;font-size:13px;white-space:nowrap}
 .shotcut-cta{margin:12px 0 0 10px;padding:12px 18px}
 .shotcut-link:hover,.shotcut-cta:hover{background:#f5a1bc25;border-color:#f5a1bc}
+.install-button{border:1px solid #ffffff27;background:linear-gradient(110deg,#f1a0bd,#ad96ff);color:#17131e;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+.install-card{position:relative;width:min(100%,430px);border:1px solid #ffffff1b;border-radius:18px;background:#1a1b25;padding:30px;box-shadow:0 20px 80px #000a}
+.install-card h2{font:700 23px Manrope,sans-serif;line-height:1.25;margin:0 0 12px}
+.install-card .muted{line-height:1.7;margin-bottom:22px}
 @media(max-width:760px){.site-shell,.admin-shell{padding:0 17px}.topbar{height:68px}.top-actions{gap:13px}.hero{grid-template-columns:1fr;min-height:auto;padding-top:20px}.hero-copy{padding:40px 0 0}.hero-art{height:260px}.vinyl{width:210px;height:210px}.vinyl-center{width:70px;height:70px}.hero h1{font-size:42px}.song-grid{grid-template-columns:1fr}.catalog-section{padding:37px 0 55px}.footer{gap:10px;font-size:10px}.player-bar{bottom:8px;gap:10px;padding:10px}.player-bar div{min-width:90px}.player-bar strong{font-size:11px}.player-bar span{font-size:10px}.player-bar audio{width:55%}.admin-main{padding-top:27px}.admin-title h1{font-size:27px}.admin-panel{padding:16px}.upload-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.stat-card strong{font-size:21px}}
 @media(max-width:430px){.text-link{display:none}.brand{font-size:20px}.hero h1{font-size:37px}.song-card{gap:10px;padding:9px}.cover{width:56px;height:56px}.download-button{font-size:10px;padding:7px}.payment-card{padding:22px}.qr-image{width:160px;height:160px}.stats-grid{grid-template-columns:1fr}}
 @media(max-width:600px){
@@ -20,6 +30,7 @@
   .top-actions{gap:8px}
   .shotcut-link{padding:8px 9px;font-size:11px}
   .admin-link{padding:9px 11px;font-size:12px}
+  .install-button{padding:9px 10px;font-size:12px}
   .hero{grid-template-columns:minmax(0,1fr);padding-top:0}
   .hero-copy{padding:34px 0 0}
   .hero h1{font-size:clamp(34px,9vw,42px);letter-spacing:-1.8px}
@@ -49,6 +60,7 @@
   .modal-backdrop{align-items:start;padding:12px}
   .payment-card{margin:auto}
 }
+@media(max-width:360px){.install-button{padding:8px;font-size:11px}}
 @media(max-width:360px){
   .site-shell,.admin-shell{padding-inline:12px}
   .brand{font-size:18px}

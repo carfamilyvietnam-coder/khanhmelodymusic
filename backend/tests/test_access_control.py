@@ -74,6 +74,42 @@ class AccessControlTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json), 2)
 
+    def test_authenticated_user_can_change_password(self):
+        response = self.client.post(
+            '/api/change-password',
+            headers=self.headers(self.admin_token),
+            json={
+                'current_password': 'long-enough-password',
+                'new_password': 'easy-to-remember',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.admin.check_password('easy-to-remember'))
+        self.assertFalse(self.admin.check_password('long-enough-password'))
+
+    def test_change_password_rejects_wrong_current_and_short_new_password(self):
+        wrong_current = self.client.post(
+            '/api/change-password',
+            headers=self.headers(self.admin_token),
+            json={
+                'current_password': 'incorrect-password',
+                'new_password': 'easy-to-remember',
+            },
+        )
+        short_new = self.client.post(
+            '/api/change-password',
+            headers=self.headers(self.admin_token),
+            json={
+                'current_password': 'long-enough-password',
+                'new_password': '123456',
+            },
+        )
+
+        self.assertEqual(wrong_current.status_code, 400)
+        self.assertEqual(short_new.status_code, 400)
+        self.assertTrue(self.admin.check_password('long-enough-password'))
+
     def test_admin_balance_edits_are_validated_and_ledgered_as_adjustments(self):
         response = self.client.put(
             f'/api/admin/users/{self.member.id}',
