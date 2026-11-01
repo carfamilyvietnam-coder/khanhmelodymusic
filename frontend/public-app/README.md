@@ -15,4 +15,4 @@ npm run dev
 
 The `khanhmelody-admin` Pages project currently serves the custom domain. Its root build runs `npm run build:admin`, which builds this app into `frontend/admin/dist` while leaving the old Admin source intact as a rollback copy. Keep the Pages output directory set to `frontend/admin/dist`.
 
-The default `VITE_STREAM_PUBLIC_URL` is `https://www.khanhmelodymussic.com`; override it in the Pages build environment only if the R2 hostname changes. This hostname is dedicated to the public `khanhmelody-v2` R2 bucket; serve the website from `https://khanhmelodymussic.com`, not from `www`. Configure the bucket CORS to allow GET/HEAD from the website origin.
+The default `VITE_STREAM_PUBLIC_URL` is the public R2 development URL `https://pub-9146b2d328a8e64b24b1057dc9e8aad33.r2.dev`; override it in the Pages build environment only if the bucket URL changes. Public access must be enabled for the `khanhmelody-v2` bucket, and its CORS must allow GET/HEAD from the website origin `https://khanhmelodymussic.com`. The root domain remains attached to Pages; `www` is not used for media hosting.

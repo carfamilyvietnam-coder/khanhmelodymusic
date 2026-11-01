@@ -2,7 +2,7 @@ import './style.css'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   || (import.meta.env.DEV ? 'http://127.0.0.1:8882/api' : 'https://api.khanhmelodymussic.com/api')
-const STREAM_PUBLIC_URL = (import.meta.env.VITE_STREAM_PUBLIC_URL || 'https://www.khanhmelodymussic.com').replace(/\/+$/, '')
+const STREAM_PUBLIC_URL = (import.meta.env.VITE_STREAM_PUBLIC_URL || 'https://pub-9146b2d328a8e64b24b1057dc9e8aad33.r2.dev').replace(/\/+$/, '')
 const STREAM_CATALOG_URL = STREAM_PUBLIC_URL ? `${STREAM_PUBLIC_URL}/catalog/songs.json` : ''
 const PRICE = 50000
 const QR_URL = import.meta.env.VITE_PAYMENT_QR_IMAGE_URL
@@ -267,7 +267,10 @@ async function loadSongs() {
   if (!Array.isArray(data) || data.some((song) => !song.stream_url)) {
     throw new Error('Danh sách nhạc trên Cloudflare không đúng định dạng.')
   }
-  state.songs = data
+  state.songs = data.map((song) => ({
+    ...song,
+    stream_url: `${STREAM_PUBLIC_URL}${new URL(song.stream_url).pathname}`,
+  }))
   renderPublic()
 }
 

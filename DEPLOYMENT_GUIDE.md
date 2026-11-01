@@ -68,11 +68,11 @@ Backend sẽ chạy trên `http://0.0.0.0:8882`
 | A | @ | [IP Server của bạn] | Proxied (☁️) |
 | CNAME | api | [IP Server của bạn] | Proxied (☁️) |
 
-Hostname `www` được dành riêng cho bucket HLS mới; không tạo record `www` trỏ về website hoặc gắn `www` vào Cloudflare Pages.
+Website chạy tại tên miền gốc. HLS được phục vụ từ URL R2 công khai của bucket, không dùng hostname website làm kho nhạc.
 
 ### 2.2 Cấu hình R2 Custom Domain
 
-Giữ bucket `khanhmelody` cũ nguyên trạng. Bucket `khanhmelody-v2` công khai chỉ chứa playlist/segment HLS. Domain `www.khanhmelodymussic.com` đã được dành riêng cho bucket mới; website tiếp tục chạy tại `khanhmelodymussic.com`.
+Giữ bucket `khanhmelody` cũ nguyên trạng. Bucket `khanhmelody-v2` công khai chỉ chứa playlist/segment HLS. Website tiếp tục chạy tại `khanhmelodymussic.com`; dùng URL phát triển công khai R2 của bucket cho HLS, không gắn `www` vào Pages hoặc bucket.
 
 ### 2.3 Phát nhạc HLS từ bucket công khai riêng
 
@@ -82,13 +82,13 @@ Trong `backend/.env`, thêm tên bucket chính xác và hostname HTTPS đã gắ
 
 ```env
 R2_STREAM_BUCKET_NAME=khanhmelody-v2
-R2_STREAM_PUBLIC_URL=https://www.khanhmelodymussic.com
+R2_STREAM_PUBLIC_URL=https://pub-9146b2d328a8e64b24b1057dc9e8aad33.r2.dev
 HLS_TRANSCODE_TIMEOUT=1800
 ```
 
-R2 API token backend phải có quyền đọc/ghi cả bucket riêng tư hiện tại và bucket HLS mới. Trong CORS của bucket HLS, cho phép GET/HEAD từ origin website `https://khanhmelodymussic.com`; expose `Accept-Ranges`, `Content-Length`, `Content-Range`, `ETag`. Hostname `www` là domain R2, không phải origin website.
+R2 API token backend phải có quyền đọc/ghi cả bucket riêng tư hiện tại và bucket HLS mới. Bật public access chỉ cho bucket HLS. Trong CORS của bucket HLS, cho phép GET/HEAD từ origin website `https://khanhmelodymussic.com`; expose `Accept-Ranges`, `Content-Length`, `Content-Range`, `ETag`.
 
-Đặt `R2_STREAM_BUCKET_NAME=khanhmelody-v2` và `R2_STREAM_PUBLIC_URL=https://www.khanhmelodymussic.com` trong backend environment. Frontend mặc định dùng hostname đó; chỉ cần đặt `VITE_STREAM_PUBLIC_URL` trong Cloudflare Pages build environment nếu hostname thay đổi. Từ thư mục `backend`, sau khi xác minh thông tin truy cập R2 và database, cập nhật dependencies và chuyển đổi bài nhạc hiện có:
+Đặt `R2_STREAM_BUCKET_NAME=khanhmelody-v2` và URL R2 công khai ở trên trong backend environment. Bật public access cho riêng bucket HLS và cho phép GET/HEAD từ website trong CORS; không bật public access cho bucket file gốc. Frontend mặc định dùng URL này; chỉ cần đặt `VITE_STREAM_PUBLIC_URL` trong Cloudflare Pages build environment nếu URL thay đổi. Từ thư mục `backend`, sau khi xác minh thông tin truy cập R2 và database, cập nhật dependencies và chuyển đổi bài nhạc hiện có:
 
 ```powershell
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
