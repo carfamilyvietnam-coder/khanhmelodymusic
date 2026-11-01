@@ -82,7 +82,7 @@ Trong `backend/.env`, thêm tên bucket chính xác và hostname HTTPS đã gắ
 
 ```env
 R2_STREAM_BUCKET_NAME=khanhmelody-v2
-R2_STREAM_PUBLIC_URL=https://pub-9146b2d328a8e64b24b1057dc9e8aad33.r2.dev
+R2_STREAM_PUBLIC_URL=https://pub-914b2d328ae64b248b1057dc9e8aad33.r2.dev
 HLS_TRANSCODE_TIMEOUT=1800
 ```
 
