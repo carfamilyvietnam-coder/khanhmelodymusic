@@ -1,3 +1,4 @@
+import json
 import unittest
 from decimal import Decimal
 from io import BytesIO
@@ -10,12 +11,15 @@ from app.models.song import Song
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.wallet import Wallet
-from app.routes.upload import normalize_audio_key
+from app.routes.upload import delete_object, normalize_audio_key
+from app.streams import playlist_url, publish_stream_catalog, stream_prefix
 
 
 class AccessControlTests(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')
+        self.app.config['R2_STREAM_BUCKET_NAME'] = 'public-streams'
+        self.app.config['R2_STREAM_PUBLIC_URL'] = 'https://stream.example.test'
         self.context = self.app.app_context()
         self.context.push()
         db.create_all()
@@ -108,7 +112,8 @@ class AccessControlTests(unittest.TestCase):
         self.assertEqual(denied.status_code, 403)
         self.assertIsNotNone(db.session.get(Song, song.id))
 
-        with patch('app.routes.upload.delete_object'):
+        with patch('app.routes.upload.delete_object'), \
+                patch('app.routes.songs.publish_stream_catalog'):
             deleted = self.client.delete(
                 f'/api/admin/songs/{song.id}',
                 headers=self.headers(self.admin_token),
@@ -128,8 +133,15 @@ class AccessControlTests(unittest.TestCase):
         )
         self.assertEqual(denied.status_code, 403)
 
-        with patch('app.routes.upload.get_r2_client') as get_client:
+        uploaded_content = []
+
+        def capture_upload(stream, bucket, key, ExtraArgs):
+            uploaded_content.append((bucket, key, stream.read(), ExtraArgs))
+
+        with patch('app.routes.upload.get_r2_client') as get_client, \
+                patch('app.routes.upload.transcode_and_publish') as transcode:
             get_client.return_value = MagicMock()
+            get_client.return_value.upload_fileobj.side_effect = capture_upload
             admin_upload = {'file': (BytesIO(b'audio'), 'track.mp3', 'audio/mpeg')}
             response = self.client.post(
                 '/api/upload/r2',
@@ -139,6 +151,90 @@ class AccessControlTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 201)
         self.assertTrue(response.json['objectKey'].startswith('audio/'))
+        self.assertEqual(transcode.call_count, 1)
+        self.assertEqual(uploaded_content[0][0], 'khanhmelody')
+        self.assertEqual(uploaded_content[0][2], b'audio')
+
+    def test_public_stream_uses_hls_and_paid_download_keeps_private_original(self):
+        song = Song(title='Track', artist='Artist', price=Decimal('50000.00'), audio_url='audio/track.mp3')
+        db.session.add(song)
+        db.session.commit()
+
+        with patch('app.routes.songs.playlist_url', return_value='https://stream.example.test/index.m3u8'), \
+                patch('app.routes.upload.create_read_url', return_value='https://private.example.test/signed-original'):
+            stream = self.client.get(f'/api/public/songs/{song.id}/stream')
+            download = self.client.post(
+                f'/api/public/songs/{song.id}/download',
+                json={
+                    'customer_name': 'Customer',
+                    'phone': '0912345678',
+                    'transfer_reference': 'BANK123',
+                    'amount': 50000,
+                },
+            )
+
+        self.assertEqual(stream.status_code, 200)
+        self.assertEqual(stream.json['stream_url'], 'https://stream.example.test/index.m3u8')
+        self.assertEqual(download.status_code, 200)
+        self.assertEqual(download.json['stream_url'], 'https://private.example.test/signed-original')
+
+    def test_create_song_updates_public_stream_catalog(self):
+        with patch('app.routes.songs.publish_stream_catalog', return_value='https://stream.example.test/catalog/songs.json') as publish:
+            response = self.client.post(
+                '/api/admin/songs',
+                headers=self.headers(self.admin_token),
+                json={
+                    'title': 'Track',
+                    'artist': 'Artist',
+                    'price': 50000,
+                    'audio_url': 'audio/track.mp3',
+                },
+            )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json['song']['title'], 'Track')
+        publish.assert_called_once_with()
+
+    def test_delete_removes_public_stream_before_private_original(self):
+        events = []
+        client = MagicMock()
+        client.delete_object.side_effect = lambda **kwargs: events.append('private-original')
+
+        with patch('app.routes.upload.get_r2_client', return_value=client), \
+                patch('app.routes.upload.delete_hls', side_effect=lambda *args, **kwargs: events.append('public-hls')):
+            delete_object('audio/track.mp3')
+
+        self.assertEqual(events, ['public-hls', 'private-original'])
+
+    def test_stream_url_uses_hls_bucket_and_private_bucket_is_separate(self):
+        self.assertEqual(
+            playlist_url('audio/track.mp3'),
+            'https://stream.example.test/streams/track/index.m3u8',
+        )
+        self.assertEqual(stream_prefix('audio/track.mp3'), 'streams/track')
+        self.app.config['R2_STREAM_BUCKET_NAME'] = 'KHANHMELODY'
+        with self.assertRaises(RuntimeError):
+            playlist_url('audio/track.mp3')
+
+    def test_stream_catalog_exposes_metadata_and_hls_but_not_original_object_key(self):
+        song = Song(
+            id=5,
+            title='Track',
+            artist='Artist',
+            price=Decimal('50000.00'),
+            audio_url='audio/track.mp3',
+        )
+        client = MagicMock()
+        with patch('app.routes.upload.get_r2_client', return_value=client):
+            catalog_url = publish_stream_catalog([song])
+
+        self.assertEqual(catalog_url, 'https://stream.example.test/catalog/songs.json')
+        payload = client.put_object.call_args.kwargs
+        self.assertEqual(payload['Bucket'], 'public-streams')
+        self.assertEqual(payload['Key'], 'catalog/songs.json')
+        catalog = json.loads(payload['Body'])
+        self.assertEqual(catalog[0]['stream_url'], 'https://stream.example.test/streams/track/index.m3u8')
+        self.assertNotIn('audio_url', catalog[0])
 
     def test_purchase_uses_server_price_and_is_idempotent(self):
         song = Song(title='Track', artist='Artist', price=Decimal('25.00'), audio_url='audio/track.mp3')

@@ -1,4 +1,6 @@
 import uuid
+import tempfile
+from pathlib import Path
 
 import boto3
 from botocore.client import Config
@@ -8,6 +10,7 @@ from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
 
 from app.security import admin_required
+from app.streams import delete_hls, transcode_and_publish
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -71,8 +74,10 @@ def delete_object(file_reference):
     key = normalize_audio_key(file_reference)
     config = current_app.config
     try:
-        get_r2_client().delete_object(Bucket=config['R2_BUCKET_NAME'], Key=key)
-    except (BotoCoreError, ClientError) as error:
+        client = get_r2_client()
+        delete_hls(file_reference, client=client)
+        client.delete_object(Bucket=config['R2_BUCKET_NAME'], Key=key)
+    except (BotoCoreError, ClientError, RuntimeError) as error:
         raise RuntimeError('Could not delete storage object') from error
 
 
@@ -101,14 +106,49 @@ def upload_to_r2():
     except ValueError as error:
         return jsonify({'error': str(error)}), 400
     object_key = f'{prefix}/{uuid.uuid4().hex}.{extension}'
+    if prefix == 'audio':
+        missing_settings = [
+            setting for setting in ('R2_STREAM_BUCKET_NAME', 'R2_STREAM_PUBLIC_URL')
+            if not current_app.config.get(setting)
+        ]
+        if missing_settings:
+            return jsonify({'error': 'Public HLS storage is not configured'}), 503
+
+    client = None
+    original_uploaded = False
     try:
-        get_r2_client().upload_fileobj(
-            file,
-            current_app.config['R2_BUCKET_NAME'],
-            object_key,
-            ExtraArgs={'ContentType': content_type},
-        )
-    except (BotoCoreError, ClientError, RuntimeError):
+        client = get_r2_client()
+        if prefix == 'audio':
+            with tempfile.TemporaryDirectory(prefix='khanhmelody-upload-') as temp_dir:
+                input_path = Path(temp_dir) / f'original.{extension}'
+                file.save(input_path)
+                transcode_and_publish(input_path, object_key, client=client)
+                with input_path.open('rb') as original_file:
+                    client.upload_fileobj(
+                        original_file,
+                        current_app.config['R2_BUCKET_NAME'],
+                        object_key,
+                        ExtraArgs={'ContentType': content_type},
+                    )
+        else:
+            client.upload_fileobj(
+                file.stream,
+                current_app.config['R2_BUCKET_NAME'],
+                object_key,
+                ExtraArgs={'ContentType': content_type},
+            )
+        original_uploaded = True
+    except (BotoCoreError, ClientError, RuntimeError, OSError):
+        if client and prefix == 'audio':
+            try:
+                delete_hls(object_key, client=client)
+            except (BotoCoreError, ClientError, RuntimeError):
+                current_app.logger.exception('Could not clean up HLS after failed source upload')
+        if original_uploaded:
+            try:
+                client.delete_object(Bucket=current_app.config['R2_BUCKET_NAME'], Key=object_key)
+            except (BotoCoreError, ClientError):
+                current_app.logger.exception('Could not clean up source after failed upload')
         current_app.logger.exception('R2 upload failed')
         return jsonify({'error': 'File could not be uploaded to storage'}), 503
     return jsonify({'message': 'File uploaded successfully', 'objectKey': object_key}), 201
@@ -152,10 +192,7 @@ def delete_from_r2():
             raise ValueError('Invalid storage object key')
         if '..' in object_key or object_key.startswith('/'):
             raise ValueError('Invalid storage object key')
-        get_r2_client().delete_object(
-            Bucket=current_app.config['R2_BUCKET_NAME'],
-            Key=object_key,
-        )
+        delete_object(object_key)
     except ValueError as error:
         return jsonify({'error': str(error)}), 400
     except (BotoCoreError, ClientError, RuntimeError):

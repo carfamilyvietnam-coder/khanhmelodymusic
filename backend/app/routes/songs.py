@@ -12,6 +12,7 @@ from app.models.guest_download import GuestCustomer, GuestDownloadClaim
 from app.models.song import Song
 from app.models.transaction import Transaction
 from app.models.wallet import Wallet
+from app.streams import playlist_url, publish_stream_catalog
 from app.security import admin_required, current_user, login_required
 
 songs_bp = Blueprint('songs', __name__)
@@ -45,7 +46,20 @@ def can_access_song(user, song):
 
 def song_stream_url(song, as_attachment=False):
     from app.routes.upload import create_read_url
-    return create_read_url(song.audio_url, as_attachment=as_attachment)
+    if as_attachment:
+        return create_read_url(song.audio_url, as_attachment=True)
+    return playlist_url(song.audio_url)
+
+
+def publish_catalog_response():
+    try:
+        publish_stream_catalog()
+    except (RuntimeError, ValueError):
+        current_app.logger.exception('Could not update the public HLS song catalog')
+        return jsonify({
+            'error': 'Song changes were saved, but the public catalog could not be updated. Retry catalog publishing.'
+        }), 503
+    return None
 
 
 @songs_bp.route('/public/songs', methods=['GET'])
@@ -224,6 +238,9 @@ def create_song():
     )
     db.session.add(song)
     db.session.commit()
+    catalog_error = publish_catalog_response()
+    if catalog_error:
+        return catalog_error
     return jsonify({'message': 'Song created successfully', 'song': song.to_dict()}), 201
 
 
@@ -257,6 +274,9 @@ def update_song(song_id):
         except (TypeError, ValueError):
             return jsonify({'error': 'Duration must be a non-negative integer'}), 400
     db.session.commit()
+    catalog_error = publish_catalog_response()
+    if catalog_error:
+        return catalog_error
     return jsonify({'message': 'Song updated successfully', 'song': song.to_dict()}), 200
 
 
@@ -276,6 +296,9 @@ def delete_song(song_id):
             return jsonify({'error': 'Could not remove song from storage'}), 503
     db.session.delete(song)
     db.session.commit()
+    catalog_error = publish_catalog_response()
+    if catalog_error:
+        return catalog_error
     return jsonify({'message': 'Song deleted successfully'}), 200
 
 

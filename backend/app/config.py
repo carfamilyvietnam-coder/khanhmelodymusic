@@ -27,6 +27,9 @@ class Config:
     R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID')
     R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
     R2_PUBLIC_URL = os.getenv('R2_PUBLIC_URL', 'https://khanhmelody.r2.dev')
+    R2_STREAM_BUCKET_NAME = os.getenv('R2_STREAM_BUCKET_NAME')
+    R2_STREAM_PUBLIC_URL = os.getenv('R2_STREAM_PUBLIC_URL', '').rstrip('/')
+    HLS_TRANSCODE_TIMEOUT = int(os.getenv('HLS_TRANSCODE_TIMEOUT', '1800'))
 
 
 class DevelopmentConfig(Config):

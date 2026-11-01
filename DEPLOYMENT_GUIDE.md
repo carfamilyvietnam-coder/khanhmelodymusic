@@ -67,15 +67,35 @@ Backend sẽ chạy trên `http://0.0.0.0:8882`
 |------|------|---------|--------------|
 | A | @ | [IP Server của bạn] | Proxied (☁️) |
 | CNAME | api | [IP Server của bạn] | Proxied (☁️) |
-| CNAME | www | khanhmelodymussic.com | Proxied (☁️) |
+
+Hostname `www` được dành riêng cho bucket HLS mới; không tạo record `www` trỏ về website hoặc gắn `www` vào Cloudflare Pages.
 
 ### 2.2 Cấu hình R2 Custom Domain
 
-1. Vào Cloudflare Dashboard → R2 → Buckets → khanhmelody
-2. Settings → Custom Domains → Add Custom Domain
-3. Nhập: `cdn.khanhmelodymussic.com`
-4. Click "Add Custom Domain"
-5. Cloudflare sẽ tự động tạo DNS record cho bạn
+Giữ bucket `khanhmelody` cũ nguyên trạng. Bucket `khanhmelody-v2` công khai chỉ chứa playlist/segment HLS. Domain `www.khanhmelodymussic.com` đã được dành riêng cho bucket mới; website tiếp tục chạy tại `khanhmelodymussic.com`.
+
+### 2.3 Phát nhạc HLS từ bucket công khai riêng
+
+Giữ bucket `khanhmelody` hiện có nguyên trạng. Không đặt file gốc vào bucket công khai mới.
+
+Trong `backend/.env`, thêm tên bucket chính xác và hostname HTTPS đã gắn với bucket:
+
+```env
+R2_STREAM_BUCKET_NAME=khanhmelody-v2
+R2_STREAM_PUBLIC_URL=https://www.khanhmelodymussic.com
+HLS_TRANSCODE_TIMEOUT=1800
+```
+
+R2 API token backend phải có quyền đọc/ghi cả bucket riêng tư hiện tại và bucket HLS mới. Trong CORS của bucket HLS, cho phép GET/HEAD từ origin website `https://khanhmelodymussic.com`; expose `Accept-Ranges`, `Content-Length`, `Content-Range`, `ETag`. Hostname `www` là domain R2, không phải origin website.
+
+Đặt `R2_STREAM_BUCKET_NAME=khanhmelody-v2` và `R2_STREAM_PUBLIC_URL=https://www.khanhmelodymussic.com` trong backend environment. Frontend mặc định dùng hostname đó; chỉ cần đặt `VITE_STREAM_PUBLIC_URL` trong Cloudflare Pages build environment nếu hostname thay đổi. Từ thư mục `backend`, sau khi xác minh thông tin truy cập R2 và database, cập nhật dependencies và chuyển đổi bài nhạc hiện có:
+
+```powershell
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
+.\venv\Scripts\python.exe publish_hls_catalog.py
+```
+
+Sau đó build member app bằng lệnh root hiện có `npm run build:admin` và triển khai bản Preview trước. Chỉ khi kiểm tra được catalog, nghe HLS, tải file gốc vẫn qua backend, và xóa bài cập nhật được catalog thì mới promote frontend. Những bước này không tự chạy khi build local.
 
 ### 2.3 Cấu hình SSL/TLS
 

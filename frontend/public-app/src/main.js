@@ -2,6 +2,8 @@ import './style.css'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   || (import.meta.env.DEV ? 'http://127.0.0.1:8882/api' : 'https://api.khanhmelodymussic.com/api')
+const STREAM_PUBLIC_URL = (import.meta.env.VITE_STREAM_PUBLIC_URL || 'https://www.khanhmelodymussic.com').replace(/\/+$/, '')
+const STREAM_CATALOG_URL = STREAM_PUBLIC_URL ? `${STREAM_PUBLIC_URL}/catalog/songs.json` : ''
 const PRICE = 50000
 const QR_URL = import.meta.env.VITE_PAYMENT_QR_IMAGE_URL
   || 'https://img.vietqr.io/image/vib-197019779-compact2.png?amount=50000&addInfo=KhanhMelody+Tai+nhac'
@@ -23,6 +25,7 @@ const state = {
 }
 
 const root = document.querySelector('#app')
+let activeHls = null
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -94,11 +97,52 @@ function renderPublic() {
         </section>
       </main>
       <footer class="footer"><span>KhanhMelody</span><span>Nghe nhạc công khai · Không cần đăng nhập</span></footer>
-      ${state.playingUrl ? `<div class="player-bar"><div><strong>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.title || 'Đang phát')}</strong><span>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.artist || '')}</span></div><audio controls autoplay src="${escapeHtml(state.playingUrl)}"></audio></div>` : ''}
+      ${state.playingUrl ? `<div class="player-bar"><div><strong>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.title || 'Đang phát')}</strong><span>${escapeHtml(state.songs.find((song) => song.id === state.playingId)?.artist || '')}</span></div><audio controls autoplay></audio></div>` : ''}
       ${renderPaymentModal()}
       <div id="toast" class="toast" role="status" hidden></div>
     </div>`
-  root.querySelector('.player-bar audio')?.addEventListener('ended', playNextSong)
+  attachAudioPlayer()
+}
+
+async function attachAudioPlayer() {
+  activeHls?.destroy()
+  activeHls = null
+  const audio = root.querySelector('.player-bar audio')
+  if (!audio || !state.playingUrl) return
+  const streamUrl = state.playingUrl
+  audio.addEventListener('ended', playNextSong)
+
+  let Hls
+  try {
+    ({ default: Hls } = await import('hls.js'))
+  } catch (error) {
+    console.error('Could not load HLS playback support.', error)
+    if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+      audio.src = streamUrl
+      audio.play().catch(() => {})
+    } else {
+      notify('Không thể tải bộ giải mã HLS để phát nhạc.')
+    }
+    return
+  }
+  if (!audio.isConnected || state.playingUrl !== streamUrl) return
+
+  if (Hls.isSupported()) {
+    activeHls = new Hls()
+    activeHls.on(Hls.Events.ERROR, (_event, data) => {
+      if (data.fatal) notify('Không thể phát luồng nhạc từ Cloudflare.')
+    })
+    activeHls.loadSource(streamUrl)
+    activeHls.attachMedia(audio)
+    activeHls.on(Hls.Events.MANIFEST_PARSED, () => {
+      audio.play().catch(() => {})
+    })
+  } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+    audio.src = streamUrl
+    audio.play().catch(() => {})
+  } else {
+    notify('Trình duyệt này không hỗ trợ phát HLS.')
+  }
 }
 
 function renderSongCards() {
@@ -214,7 +258,15 @@ function renderWallets() {
 }
 
 async function loadSongs() {
-  const data = await request('/public/songs')
+  if (!STREAM_CATALOG_URL) {
+    throw new Error('Thiếu cấu hình VITE_STREAM_PUBLIC_URL cho kho nhạc Cloudflare.')
+  }
+  const response = await fetch(STREAM_CATALOG_URL, { cache: 'no-cache' })
+  if (!response.ok) throw new Error(`Không thể tải danh sách nhạc (HTTP ${response.status}).`)
+  const data = await response.json()
+  if (!Array.isArray(data) || data.some((song) => !song.stream_url)) {
+    throw new Error('Danh sách nhạc trên Cloudflare không đúng định dạng.')
+  }
   state.songs = data
   renderPublic()
 }
@@ -237,13 +289,17 @@ async function loadAdminTab() {
 }
 
 async function playSong(id) {
-  try {
-    const data = await request(`/public/songs/${id}/stream`)
-    state.playingId = id
-    state.playingUrl = data.stream_url
-    renderPublic()
-    document.querySelector('.player-bar audio')?.play().catch(() => {})
-  } catch (error) { notify(error.message) }
+  const song = state.songs.find((item) => item.id === id)
+  if (!song?.stream_url) {
+    notify('Bài hát chưa có luồng phát HLS trên Cloudflare.')
+    return
+  }
+  state.playingId = id
+  state.playingUrl = song.stream_url
+  renderPublic()
+  request(`/public/songs/${id}/stream`).catch((error) => {
+    console.info('Play-count update skipped; audio playback uses Cloudflare directly.', error)
+  })
 }
 
 function playNextSong() {
